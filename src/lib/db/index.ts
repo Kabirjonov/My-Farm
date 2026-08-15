@@ -1,4 +1,5 @@
 export * from './database';
+export { initDatabase } from './db';
 export * from './migrations';
 export * from './seed';
 export * from './repositories/animalRepository';

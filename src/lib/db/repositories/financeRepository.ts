@@ -134,7 +134,7 @@ export const financeRepository = {
         'SELECT * FROM harvest_records WHERE cropSeasonId = ?',
         [c.id]
       );
-      const actual = harvests.reduce((acc, h) => acc + h.quantity, 0);
+      const actual = harvests.reduce((acc: number, h: HarvestRecord) => acc + h.quantity, 0);
       return {
         cropName: c.cropName,
         expected: c.expectedYield || 0,
@@ -151,8 +151,8 @@ export const financeRepository = {
     allIncomes.forEach((i) => monthsSet.add(i.date.substring(0, 7)));
 
     const monthlyProfitReport = Array.from(monthsSet).sort().reverse().map((month) => {
-      const exp = allExpenses.filter((e) => e.date.startsWith(month)).reduce((acc, e) => acc + e.amount, 0);
-      const inc = allIncomes.filter((i) => i.date.startsWith(month)).reduce((acc, i) => acc + i.amount, 0);
+      const exp = allExpenses.filter((e) => e.date.startsWith(month)).reduce((acc: number, e: Expense) => acc + e.amount, 0);
+      const inc = allIncomes.filter((i) => i.date.startsWith(month)).reduce((acc: number, i: Income) => acc + i.amount, 0);
       return {
         month,
         income: inc,
@@ -163,7 +163,7 @@ export const financeRepository = {
 
     // 5. Animal health cost report
     const healthRecords = dbInstance.getAllSync<HealthRecord>('SELECT * FROM health_records WHERE cost > 0');
-    const totalHealthCost = healthRecords.reduce((acc, h) => acc + (h.cost || 0), 0);
+    const totalHealthCost = healthRecords.reduce((acc: number, h: HealthRecord) => acc + (h.cost || 0), 0);
 
     return {
       livestockReport,
