@@ -12,12 +12,14 @@ import { Colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useFinance } from '@/features/finance';
 import { RoleGuard } from '@/features/auth';
+import { useTranslation } from '@/i18n';
 import { StatCard, LoadingState, AppTextInput } from '@/components/ui';
 
 export default function FinanceScreen() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const router = useRouter();
+  const { t, formatEnum } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<'expenses' | 'incomes'>('expenses');
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,7 +27,7 @@ export default function FinanceScreen() {
   const { expenses, incomes, summary, isLoading } = useFinance();
 
   if (isLoading && !summary) {
-    return <LoadingState message="Moliya ma'lumotlari yuklanmoqda..." />;
+    return <LoadingState message={`${t('finance')}...`} />;
   }
 
   const isProfitPositive = (summary?.netProfit || 0) >= 0;
@@ -47,8 +49,8 @@ export default function FinanceScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={[styles.subTitle, { color: colors.textSecondary }]}>Moliya Boshqaruvi</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Hisob-kitob va Daromad</Text>
+          <Text style={[styles.subTitle, { color: colors.textSecondary }]}>{t('finance')}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('finance')}</Text>
         </View>
         <RoleGuard permission="FINANCE_MANAGE">
           <TouchableOpacity
@@ -69,17 +71,17 @@ export default function FinanceScreen() {
         {/* Monthly Summary Cards Grid */}
         <View style={styles.statsGrid}>
           <StatCard
-            title="Oylik Xarajat"
+            title={t('expensesList')}
             value={`${(summary?.monthlyExpenses || 0).toLocaleString()} so'm`}
             accentColor={colors.danger}
           />
           <StatCard
-            title="Oylik Daromad"
+            title={t('incomesList')}
             value={`${(summary?.monthlyIncomes || 0).toLocaleString()} so'm`}
             accentColor={colors.primary}
           />
           <StatCard
-            title="Sof Foyda / Zarar"
+            title={t('netProfit')}
             value={`${(summary?.netProfit || 0).toLocaleString()} so'm`}
             accentColor={isProfitPositive ? colors.primary : colors.danger}
           />
@@ -96,7 +98,7 @@ export default function FinanceScreen() {
               onPress={() => setActiveTab('expenses')}>
               <TrendingDown size={16} color={activeTab === 'expenses' ? colors.primary : colors.textSecondary} />
               <Text style={[styles.tabBtnText, { color: activeTab === 'expenses' ? colors.primary : colors.textSecondary }]}>
-                Xarajatlar ({expenses.length})
+                {t('expensesList')} ({expenses.length})
               </Text>
             </TouchableOpacity>
 
@@ -108,7 +110,7 @@ export default function FinanceScreen() {
               onPress={() => setActiveTab('incomes')}>
               <TrendingUp size={16} color={activeTab === 'incomes' ? colors.primary : colors.textSecondary} />
               <Text style={[styles.tabBtnText, { color: activeTab === 'incomes' ? colors.primary : colors.textSecondary }]}>
-                Daromadlar ({incomes.length})
+                {t('incomesList')} ({incomes.length})
               </Text>
             </TouchableOpacity>
           </View>
@@ -116,7 +118,7 @@ export default function FinanceScreen() {
 
         {/* Search Input */}
         <AppTextInput
-          placeholder="Toifasi yoki sarlavhasi bo'yicha qidirish..."
+          placeholder={t('search')}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -125,7 +127,7 @@ export default function FinanceScreen() {
         {activeTab === 'expenses' ? (
           filteredExpenses.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-              <Text style={{ color: colors.textSecondary }}>Hozircha xarajatlar yozuvi yo&apos;q.</Text>
+              <Text style={{ color: colors.textSecondary }}>{t('noData')}</Text>
             </View>
           ) : (
             filteredExpenses.map((exp) => (
@@ -134,7 +136,7 @@ export default function FinanceScreen() {
                   <View>
                     <Text style={[styles.itemTitle, { color: colors.text }]}>{exp.title}</Text>
                     <Text style={[styles.itemMeta, { color: colors.textSecondary }]}>
-                      Kategoriya: {exp.category} • {exp.date}
+                      {formatEnum('exp', exp.category)} • {exp.date}
                     </Text>
                   </View>
                   <Text style={[styles.itemAmount, { color: colors.danger }]}>
@@ -146,7 +148,7 @@ export default function FinanceScreen() {
           )
         ) : filteredIncomes.length === 0 ? (
           <View style={[styles.emptyCard, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-            <Text style={{ color: colors.textSecondary }}>Hozircha daromadlar yozuvi yo&apos;q.</Text>
+            <Text style={{ color: colors.textSecondary }}>{t('noData')}</Text>
           </View>
         ) : (
           filteredIncomes.map((inc) => (
@@ -155,7 +157,7 @@ export default function FinanceScreen() {
                 <View>
                   <Text style={[styles.itemTitle, { color: colors.text }]}>{inc.title}</Text>
                   <Text style={[styles.itemMeta, { color: colors.textSecondary }]}>
-                    Kategoriya: {inc.category} • {inc.date}
+                    {formatEnum('inc', inc.category)} • {inc.date}
                   </Text>
                 </View>
                 <Text style={[styles.itemAmount, { color: colors.primary }]}>

@@ -12,12 +12,14 @@ import { Colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useLivestock } from '@/features/livestock';
 import { RoleGuard } from '@/features/auth';
+import { useTranslation } from '@/i18n';
 import { AppTextInput, StatCard, EmptyState, LoadingState, AppSelect } from '@/components/ui';
 
 export default function LivestockScreen() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const router = useRouter();
+  const { t, formatEnum } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('ALL');
@@ -34,23 +36,23 @@ export default function LivestockScreen() {
   const { animals, stats, isLoading } = useLivestock(filterOptions);
 
   const typeFilterOptions = [
-    { label: 'Barchasi', value: 'ALL' },
-    { label: "Qo'y", value: 'SHEEP' },
-    { label: 'Mol', value: 'COW' },
-    { label: 'Echki', value: 'GOAT' },
-    { label: 'Ot', value: 'HORSE' },
-    { label: 'Tovuq', value: 'CHICKEN' },
+    { label: t('all'), value: 'ALL' },
+    { label: formatEnum('type', 'SHEEP'), value: 'SHEEP' },
+    { label: formatEnum('type', 'COW'), value: 'COW' },
+    { label: formatEnum('type', 'GOAT'), value: 'GOAT' },
+    { label: formatEnum('type', 'HORSE'), value: 'HORSE' },
+    { label: formatEnum('type', 'CHICKEN'), value: 'CHICKEN' },
   ];
 
   const healthFilterOptions = [
-    { label: 'Barcha Holatlar', value: 'ALL' },
-    { label: "Sog'lom", value: 'HEALTHY' },
-    { label: 'Kasal', value: 'SICK' },
-    { label: 'Homilador', value: 'PREGNANT' },
+    { label: t('all'), value: 'ALL' },
+    { label: formatEnum('health', 'HEALTHY'), value: 'HEALTHY' },
+    { label: formatEnum('health', 'SICK'), value: 'SICK' },
+    { label: formatEnum('health', 'PREGNANT'), value: 'PREGNANT' },
   ];
 
   if (isLoading && !stats) {
-    return <LoadingState message="Chorva ma'lumotlari yuklanmoqda..." />;
+    return <LoadingState message={`${t('livestock')}...`} />;
   }
 
   return (
@@ -58,8 +60,8 @@ export default function LivestockScreen() {
       {/* Fixed Header */}
       <View style={styles.header}>
         <View>
-          <Text style={[styles.subTitle, { color: colors.textSecondary }]}>Chorva Boshqaruvi</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Ferma Hayvonlari</Text>
+          <Text style={[styles.subTitle, { color: colors.textSecondary }]}>{t('livestock')}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('totalAnimals')}</Text>
         </View>
         <RoleGuard permission="ANIMAL_CREATE">
           <TouchableOpacity
@@ -73,28 +75,28 @@ export default function LivestockScreen() {
       <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         {/* Dashboard Stats Summary Grid */}
         <View style={styles.statsGrid}>
-          <StatCard title="Jami Faol Hayvonlar" value={stats?.totalActive || 0} accentColor={colors.primary} />
-          <StatCard title="Qo'ylar" value={stats?.byType.SHEEP || 0} accentColor={colors.accentAmber} />
-          <StatCard title="Mollar" value={stats?.byType.COW || 0} accentColor={colors.accentBlue} />
-          <StatCard title="Homilador / Kasal" value={(stats?.byHealthStatus.PREGNANT || 0) + (stats?.byHealthStatus.SICK || 0)} accentColor={colors.warning} />
+          <StatCard title={t('totalAnimals')} value={stats?.totalActive || 0} accentColor={colors.primary} />
+          <StatCard title={t('typeSHEEP')} value={stats?.byType.SHEEP || 0} accentColor={colors.accentAmber} />
+          <StatCard title={t('typeCOW')} value={stats?.byType.COW || 0} accentColor={colors.accentBlue} />
+          <StatCard title={t('sickPregnant')} value={(stats?.byHealthStatus.PREGNANT || 0) + (stats?.byHealthStatus.SICK || 0)} accentColor={colors.warning} />
         </View>
 
         {/* Search & Filter Section */}
         <View style={[styles.filterCard, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
           <AppTextInput
-            placeholder="Teg raqami, nomi yoki zotidan qidirish..."
+            placeholder={t('search')}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
 
-          <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>Hayvon turi bo&apos;yicha filter:</Text>
+          <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>{t('typeOTHER')}:</Text>
           <AppSelect
             options={typeFilterOptions}
             selectedValue={selectedType}
             onValueChange={setSelectedType}
           />
 
-          <Text style={[styles.filterLabel, { color: colors.textSecondary, marginTop: 8 }]}>Sog&apos;liq holati bo&apos;yicha filter:</Text>
+          <Text style={[styles.filterLabel, { color: colors.textSecondary, marginTop: 8 }]}>{t('status')}:</Text>
           <AppSelect
             options={healthFilterOptions}
             selectedValue={selectedHealth}
@@ -104,14 +106,14 @@ export default function LivestockScreen() {
 
         {/* Animals List Section */}
         <View style={styles.listHeader}>
-          <Text style={[styles.listTitle, { color: colors.text }]}>Hayvonlar Ro&apos;yxati ({animals.length})</Text>
+          <Text style={[styles.listTitle, { color: colors.text }]}>{t('livestock')} ({animals.length})</Text>
         </View>
 
         {animals.length === 0 ? (
           <EmptyState
-            title="Hayvonlar topilmadi"
-            description="Qidiruv natijasiga mos keladigan hayvon yaratilmagan."
-            actionTitle="Yangi Hayvon Qo'shish"
+            title={t('livestock')}
+            description={t('search')}
+            actionTitle={t('addAnimal')}
             onAction={() => router.push('/animals/edit')}
           />
         ) : (
@@ -128,12 +130,12 @@ export default function LivestockScreen() {
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: item.healthStatus === 'HEALTHY' ? colors.primaryLight : '#FEF3C7' }]}>
                   <Text style={[styles.statusText, { color: item.healthStatus === 'HEALTHY' ? colors.primary : colors.warning }]}>
-                    {item.healthStatus}
+                    {formatEnum('health', item.healthStatus)}
                   </Text>
                 </View>
               </View>
               <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                Turi: {item.type} • Zoti: {item.breed} • Vazn: {item.weightKg} kg
+                {formatEnum('type', item.type)} • {item.breed} • {item.weightKg} kg
               </Text>
             </TouchableOpacity>
           ))

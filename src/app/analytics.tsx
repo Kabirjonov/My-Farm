@@ -4,23 +4,18 @@ import {
   StyleSheet,
   View,
   Text,
-  TouchableOpacity,
   useColorScheme,
 } from 'react-native';
 import {
-  TrendingUp,
   Sparkles,
   Award,
   DollarSign,
   Droplets,
-  Calendar,
-  AlertCircle,
-  CheckCircle,
   Leaf,
   BarChart2,
 } from 'lucide-react-native';
 import { Colors, Spacing } from '@/constants/theme';
-import { INITIAL_HARVESTS, INITIAL_FIELDS } from '@/services/farmStore';
+import { INITIAL_HARVESTS } from '@/services/farmStore';
 
 export default function AnalyticsScreen() {
   const scheme = useColorScheme();

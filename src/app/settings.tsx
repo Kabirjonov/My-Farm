@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
-import { Settings as SettingsIcon, User as UserIcon, Shield, Home, RefreshCw, Wifi, WifiOff } from 'lucide-react-native';
+import { Settings as SettingsIcon, User as UserIcon, Shield, Home, RefreshCw, Wifi, WifiOff, Globe } from 'lucide-react-native';
 import { useAuth, UserRole } from '@/features/auth';
 import { useSync } from '@/features/sync';
+import { useTranslation, Language } from '@/i18n';
 import { AppSelect, AppButton } from '@/components/ui';
 
 export default function SettingsScreen() {
@@ -11,13 +12,19 @@ export default function SettingsScreen() {
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const { user, switchRole, switchFarm } = useAuth();
   const { isOnline, setIsOnline, syncStatus, pendingCount, triggerSync } = useSync();
+  const { t, language, setLanguage } = useTranslation();
+
+  const languageOptions: { label: string; value: Language }[] = [
+    { label: t('langUz'), value: 'uz' },
+    { label: t('langRu'), value: 'ru' },
+  ];
 
   const roleOptions: { label: string; value: UserRole }[] = [
-    { label: 'Ega (Owner)', value: 'OWNER' },
-    { label: 'Boshqaruvchi (Manager)', value: 'MANAGER' },
-    { label: 'Ishchi (Worker)', value: 'WORKER' },
-    { label: 'Veterinar (Vet)', value: 'VET' },
-    { label: 'Kuzatuvchi (Viewer)', value: 'VIEWER' },
+    { label: t('roleOWNER'), value: 'OWNER' },
+    { label: t('roleMANAGER'), value: 'MANAGER' },
+    { label: t('roleWORKER'), value: 'WORKER' },
+    { label: t('roleVET'), value: 'VET' },
+    { label: t('roleVIEWER'), value: 'VIEWER' },
   ];
 
   const farmOptions = [
@@ -29,7 +36,7 @@ export default function SettingsScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <SettingsIcon size={28} color={colors.primary} />
-        <Text style={[styles.title, { color: colors.text }]}>Sozlamalar & Profil</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('settings')}</Text>
       </View>
 
       {/* User Profile Card */}
@@ -47,12 +54,26 @@ export default function SettingsScreen() {
         </View>
       )}
 
+      {/* Language Switcher Card (Uzbek / Russian) */}
+      <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
+        <View style={styles.cardHeader}>
+          <Globe size={20} color={colors.primary} />
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{t('language')}</Text>
+        </View>
+        <AppSelect
+          label={t('selectLanguage')}
+          options={languageOptions}
+          selectedValue={language}
+          onValueChange={(val) => setLanguage(val as Language)}
+        />
+      </View>
+
       {/* Offline Sync Status & Queue Card */}
       <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
         <View style={styles.rowBetween}>
           <View style={styles.cardHeader}>
             <RefreshCw size={20} color={colors.primary} />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Offline Sync & Tarmoq Holati</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Offline Sync</Text>
           </View>
           <TouchableOpacity
             style={[styles.networkBadge, { backgroundColor: isOnline ? colors.primaryLight : '#FEE2E2' }]}
@@ -65,7 +86,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.rowBetween}>
-          <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Sinxronizatsiya holati:</Text>
+          <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>{t('status')}:</Text>
           <View
             style={[
               styles.statusBadge,
@@ -90,17 +111,17 @@ export default function SettingsScreen() {
                       : colors.danger,
                 },
               ]}>
-              {syncStatus}
+              {t(`sync${syncStatus}` as any)}
             </Text>
           </View>
         </View>
 
         <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-          Kutish navbatidagi o&apos;zgarishlar (SyncQueue): {pendingCount} ta
+          SyncQueue: {pendingCount}
         </Text>
 
         <AppButton
-          title="Qayta Sinxronlash (Retry Sync)"
+          title={t('retry')}
           onPress={triggerSync}
           style={{ marginTop: 4 }}
         />
@@ -126,11 +147,8 @@ export default function SettingsScreen() {
       <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
         <View style={styles.cardHeader}>
           <Shield size={20} color={colors.primary} />
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Foydalanuvchi Roli (Test / Demo)</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Foydalanuvchi Roli (RBAC)</Text>
         </View>
-        <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-          Rolni o&apos;zgartiring va ruxsatlarni (Permission Matrix) tekshiring:
-        </Text>
         <AppSelect
           options={roleOptions}
           selectedValue={user?.role || 'OWNER'}

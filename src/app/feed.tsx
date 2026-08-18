@@ -12,12 +12,14 @@ import { Colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useFeed } from '@/features/feed';
 import { RoleGuard } from '@/features/auth';
+import { useTranslation } from '@/i18n';
 import { AppTextInput, StatCard, EmptyState, LoadingState } from '@/components/ui';
 
 export default function FeedScreen() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');
   const { items, stats, isLoading } = useFeed();
@@ -27,7 +29,7 @@ export default function FeedScreen() {
   );
 
   if (isLoading && !stats) {
-    return <LoadingState message="Yem zaxirasi ma'lumotlari yuklanmoqda..." />;
+    return <LoadingState message={`${t('feed')}...`} />;
   }
 
   return (
@@ -35,8 +37,8 @@ export default function FeedScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={[styles.subTitle, { color: colors.textSecondary }]}>Ozuqa Boshqaruvi</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Yem Zaxirasi</Text>
+          <Text style={[styles.subTitle, { color: colors.textSecondary }]}>{t('feed')}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('feed')}</Text>
         </View>
         <RoleGuard permission="FEED_MANAGE">
           <TouchableOpacity
@@ -50,28 +52,28 @@ export default function FeedScreen() {
       <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         {/* Dashboard Summary Cards */}
         <View style={styles.statsGrid}>
-          <StatCard title="Jami Yem Turlari" value={stats?.totalTypes || 0} accentColor={colors.primary} />
-          <StatCard title="Kam Qolgan Yemlar" value={stats?.lowStockCount || 0} accentColor={colors.danger} />
-          <StatCard title="Bugungi Chiqim" value={stats?.totalOutToday || 0} accentColor={colors.warning} />
+          <StatCard title={t('feed')} value={stats?.totalTypes || 0} accentColor={colors.primary} />
+          <StatCard title={t('lowStockFeed')} value={stats?.lowStockCount || 0} accentColor={colors.danger} />
+          <StatCard title={t('total')} value={stats?.totalOutToday || 0} accentColor={colors.warning} />
         </View>
 
         {/* Search Bar */}
         <AppTextInput
-          placeholder="Yem nomi bo'yicha qidirish..."
+          placeholder={t('search')}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
 
         {/* List Section Header */}
         <View style={styles.listHeader}>
-          <Text style={[styles.listTitle, { color: colors.text }]}>Yem Qoldiqlari Ro&apos;yxati ({filteredItems.length})</Text>
+          <Text style={[styles.listTitle, { color: colors.text }]}>{t('feed')} ({filteredItems.length})</Text>
         </View>
 
         {filteredItems.length === 0 ? (
           <EmptyState
-            title="Yem turi topilmadi"
-            description="Qidiruv natijasiga mos yozuv yaratilmagan."
-            actionTitle="Yangi Yem Qo'shish"
+            title={t('feed')}
+            description={t('noData')}
+            actionTitle={t('add')}
             onAction={() => router.push('/feed/edit' as any)}
           />
         ) : (
@@ -89,7 +91,7 @@ export default function FeedScreen() {
                   {isLowStock && (
                     <View style={[styles.badge, { backgroundColor: '#FEE2E2' }]}>
                       <AlertTriangle size={12} color={colors.danger} />
-                      <Text style={[styles.badgeText, { color: colors.danger }]}>Kam Qoldi</Text>
+                      <Text style={[styles.badgeText, { color: colors.danger }]}>{t('lowStockFeed')}</Text>
                     </View>
                   )}
                 </View>
@@ -99,7 +101,7 @@ export default function FeedScreen() {
                     {item.currentQuantity} {item.unit}
                   </Text>
                   <Text style={[styles.minText, { color: colors.textSecondary }]}>
-                    Minimal chegara: {item.minQuantity} {item.unit}
+                    Min: {item.minQuantity} {item.unit}
                   </Text>
                 </View>
               </TouchableOpacity>

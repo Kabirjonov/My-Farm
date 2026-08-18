@@ -15,13 +15,10 @@ import {
   Circle,
   Plus,
   Calendar,
-  AlertCircle,
   Droplets,
   Sprout,
   ShieldAlert,
-  Search,
   X,
-  Filter,
 } from 'lucide-react-native';
 import { Colors, Spacing } from '@/constants/theme';
 import { INITIAL_TASKS, INITIAL_FIELDS, FarmTask } from '@/services/farmStore';
@@ -36,10 +33,10 @@ export default function TasksScreen() {
 
   // New task form state
   const [title, setTitle] = useState('');
-  const [fieldId, setFieldId] = useState(INITIAL_FIELDS[0]?.id || '');
+  const [fieldId] = useState(INITIAL_FIELDS[0]?.id || '');
   const [type, setType] = useState<FarmTask['type']>('irrigation');
   const [priority, setPriority] = useState<FarmTask['priority']>('medium');
-  const [dueDate, setDueDate] = useState('Tomorrow');
+  const [dueDate] = useState('Tomorrow');
 
   const toggleTask = (taskId: string) => {
     setTasks((prev) =>

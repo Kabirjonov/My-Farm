@@ -25,6 +25,7 @@ import { useLand } from '@/features/crops';
 import { useFinance } from '@/features/finance';
 import { useHealth } from '@/features/health';
 import { useAuth } from '@/features/auth';
+import { useTranslation } from '@/i18n';
 import { StatCard, QuickActionButton, LoadingState } from '@/components/ui';
 
 export default function DashboardScreen() {
@@ -32,6 +33,7 @@ export default function DashboardScreen() {
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const { stats: livestockStats, isLoading: isLoadingLivestock } = useLivestock();
   const { stats: feedStats, isLoading: isLoadingFeed } = useFeed();
@@ -40,7 +42,7 @@ export default function DashboardScreen() {
   const { reminders, toggleReminder } = useHealth();
 
   if (isLoadingLivestock || isLoadingFeed || isLoadingLand || isLoadingFinance) {
-    return <LoadingState message="Ferma ko'rsatkichlari tayyorlanmoqda..." />;
+    return <LoadingState message={`${t('appName')}...`} />;
   }
 
   const isProfitPositive = (financeSummary?.netProfit || 0) >= 0;
@@ -54,49 +56,49 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <View>
           <Text style={[styles.subGreeting, { color: colors.textSecondary }]}>
-            Xush kelibsiz, {user?.fullName || 'Fermer'} 👋
+            {t('welcome')}, {user?.fullName || 'Fermer'} 👋
           </Text>
           <Text style={[styles.title, { color: colors.text }]}>
-            {user?.currentFarmName || 'My Farm Boshqaruvi'}
+            {user?.currentFarmName || t('appName')}
           </Text>
         </View>
 
         <TouchableOpacity
           style={[styles.roleBadge, { backgroundColor: colors.primaryLight }]}
           onPress={() => router.push('/settings' as any)}>
-          <Text style={[styles.roleBadgeText, { color: colors.primary }]}>{user?.role || 'OWNER'}</Text>
+          <Text style={[styles.roleBadgeText, { color: colors.primary }]}>{t(`role${user?.role || 'OWNER'}` as any)}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Main Financial & Operational Overview Grid */}
       <View style={styles.statsGrid}>
         <StatCard
-          title="Chorva Bosh Soni"
+          title={t('totalAnimals')}
           value={livestockStats?.totalActive || 0}
           accentColor={colors.primary}
         />
         <StatCard
-          title="Qo'y / Mol"
+          title={t('sheepCowRatio')}
           value={`${livestockStats?.byType.SHEEP || 0} / ${livestockStats?.byType.COW || 0}`}
           accentColor={colors.accentAmber}
         />
         <StatCard
-          title="Kasal / Homilador"
+          title={t('sickPregnant')}
           value={(livestockStats?.byHealthStatus.SICK || 0) + (livestockStats?.byHealthStatus.PREGNANT || 0)}
           accentColor={colors.warning}
         />
         <StatCard
-          title="Kam Qolgan Yemlar"
+          title={t('lowStockFeed')}
           value={feedStats?.lowStockCount || 0}
           accentColor={colors.danger}
         />
         <StatCard
-          title="Faol Yer Maydoni"
+          title={t('activeLand')}
           value={`${landStats?.totalAreaHectares || 0} ga`}
           accentColor={colors.accentBlue}
         />
         <StatCard
-          title="Sof Oylik Foyda"
+          title={t('netProfit')}
           value={`${(financeSummary?.netProfit || 0).toLocaleString()} so'm`}
           accentColor={isProfitPositive ? colors.primary : colors.danger}
         />
@@ -111,7 +113,7 @@ export default function DashboardScreen() {
           <AlertTriangle size={20} color={colors.danger} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.alertTitle, { color: colors.danger }]}>
-              Ozuqa Ogohlantirishi ({feedStats?.lowStockCount} ta Yem)
+              {t('lowStockFeed')} ({feedStats?.lowStockCount})
             </Text>
             <Text style={styles.alertText}>
               Ombordagi ayrim yemlar minimal miqdordan kam qoldi. Zaxirani to&apos;ldiring.
@@ -122,29 +124,29 @@ export default function DashboardScreen() {
 
       {/* Quick Action Buttons Row */}
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Tezkor Amallar</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('quickActions')}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.actionsScroll}>
         <QuickActionButton
-          title="Hayvon Qo'shish"
+          title={t('addAnimal')}
           icon={<Plus size={18} color={colors.primary} />}
           onPress={() => router.push('/animals/edit')}
           accentColor={colors.primary}
         />
         <QuickActionButton
-          title="Yem Kirim/Chiqim"
+          title={t('feedKirimChiqim')}
           icon={<Wheat size={18} color={colors.accentAmber} />}
           onPress={() => router.push('/feed')}
           accentColor={colors.accentAmber}
         />
         <QuickActionButton
-          title="Xarajat / Daromad"
+          title={t('financeAction')}
           icon={<DollarSign size={18} color={colors.accentBlue} />}
           onPress={() => router.push('/finance' as any)}
           accentColor={colors.accentBlue}
         />
         <QuickActionButton
-          title="Sog'liq Yozish"
+          title={t('healthAction')}
           icon={<HeartPulse size={18} color={colors.warning} />}
           onPress={() => router.push('/livestock')}
           accentColor={colors.warning}
@@ -155,7 +157,7 @@ export default function DashboardScreen() {
       <View style={styles.sectionHeader}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Bell size={18} color={colors.primary} />
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Eslatmalar va Taqvim ({reminders.length})</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('reminders')} ({reminders.length})</Text>
         </View>
       </View>
 
