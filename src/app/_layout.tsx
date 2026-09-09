@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
-import { Tabs } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { Tabs, usePathname, useRouter } from 'expo-router';
+import { Platform, useColorScheme } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { LayoutDashboard, Sprout, Wheat, PawPrint, BarChart2 } from 'lucide-react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { initDatabase } from '@/lib/db/db';
 import { useTranslation } from '@/i18n';
+import { useAuth } from '@/features/auth';
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,17 @@ function TabsNavigator() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
   const { t } = useTranslation();
+  const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  const isAuthScreen = !isAuthenticated || pathname === '/login' || pathname === '/register';
+
+  useEffect(() => {
+    if (!isAuthenticated && pathname !== '/login' && pathname !== '/register') {
+      router.replace('/login' as any);
+    }
+  }, [isAuthenticated, pathname, router]);
 
   return (
     <Tabs
@@ -24,16 +36,28 @@ function TabsNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarStyle: {
-          backgroundColor: colors.backgroundElement,
-          borderTopColor: colors.cardBorder,
-          height: 62,
-          paddingBottom: 8,
-          paddingTop: 6,
-        },
+        tabBarStyle: isAuthScreen
+          ? { display: 'none' }
+          : {
+              backgroundColor: colors.backgroundElement,
+              borderTopColor: colors.cardBorder,
+              borderTopWidth: 1,
+              height: Platform.OS === 'ios' ? 84 : 68,
+              paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+              paddingTop: 8,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 8,
+            },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '700',
+          letterSpacing: 0.2,
+        },
+        tabBarIconStyle: {
+          marginBottom: 2,
         },
       }}>
       {/* 1. Primary Tab: Dashboard */}
@@ -82,6 +106,9 @@ function TabsNavigator() {
       />
 
       {/* Hide all sub-screens & auxiliary routes from bottom tab bar */}
+      <Tabs.Screen name="login" options={{ href: null }} />
+      <Tabs.Screen name="register" options={{ href: null }} />
+      <Tabs.Screen name="profile-edit" options={{ href: null }} />
       <Tabs.Screen name="finance" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />
       <Tabs.Screen name="tasks" options={{ href: null }} />

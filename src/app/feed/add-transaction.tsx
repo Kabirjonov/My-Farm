@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { feedService } from '@/features/feed';
 import { FeedTransactionType } from '@/types/domain';
@@ -20,6 +21,8 @@ export default function AddFeedTransactionScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
+
 
   const feedItem = feedItemId ? feedService.getFeedItemById(feedItemId) : null;
 
@@ -75,9 +78,16 @@ export default function AddFeedTransactionScreen() {
       notes: notes || undefined,
     });
 
+    queryClient.invalidateQueries({ queryKey: ['feed-items'] });
+    queryClient.invalidateQueries({ queryKey: ['feed-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['feed-transactions'] });
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['finance-summary'] });
+
     Alert.alert('Muvaffaqiyatli', 'Tranzaksiya saqlandi va qoldiq yangilandi.');
     router.back();
   };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

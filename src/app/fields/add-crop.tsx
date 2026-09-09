@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { landService } from '@/features/crops';
 import { CropStatus } from '@/types/domain';
@@ -20,6 +21,8 @@ export default function AddCropSeasonScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
+
 
   const field = fieldId ? landService.getFieldById(fieldId) : null;
 
@@ -75,9 +78,17 @@ export default function AddCropSeasonScreen() {
       notes: notes || undefined,
     });
 
+    queryClient.invalidateQueries({ queryKey: ['crop-seasons'] });
+    queryClient.invalidateQueries({ queryKey: ['land-fields'] });
+    queryClient.invalidateQueries({ queryKey: ['land-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['finance-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['reminders'] });
+
     Alert.alert('Muvaffaqiyatli', 'Ekin mavsumi yaratildi va xarajatlar avtomatik moliya bo\'limiga o\'tkazildi.');
     router.back();
   };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

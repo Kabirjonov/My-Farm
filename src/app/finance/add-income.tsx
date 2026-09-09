@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { financeService } from '@/features/finance';
 import { IncomeCategory } from '@/types/domain';
@@ -19,6 +20,7 @@ export default function AddIncomeScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<IncomeCategory>('MILK');
@@ -55,6 +57,11 @@ export default function AddIncomeScreen() {
       notes: notes || undefined,
     });
 
+    queryClient.invalidateQueries({ queryKey: ['incomes'] });
+    queryClient.invalidateQueries({ queryKey: ['finance-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock-stats'] });
+
     Alert.alert(
       'Muvaffaqiyatli',
       category === 'ANIMAL_SALE' && relatedAnimalId
@@ -63,6 +70,7 @@ export default function AddIncomeScreen() {
     );
     router.back();
   };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

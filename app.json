@@ -34,11 +34,19 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "41a8a773-fa08-439f-a077-87665ef68999"
+      }
+    },
+    "owner": "kabirjonovs-team"
   }
 }

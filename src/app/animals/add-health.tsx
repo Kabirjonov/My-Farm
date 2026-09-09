@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { healthService } from '@/features/health';
 import { AppTextInput, AppDatePicker, AppButton } from '@/components/ui';
@@ -19,6 +20,7 @@ export default function AddHealthScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
 
   const [title, setTitle] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
@@ -55,6 +57,12 @@ export default function AddHealthScreen() {
       cost: cost ? Number(cost) : undefined,
       nextCheckDate: nextCheckDate || undefined,
     });
+
+    queryClient.invalidateQueries({ queryKey: ['health-records'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['reminders'] });
 
     Alert.alert('Muvaffaqiyatli', 'Sog\'liq yozuvi qo\'shildi va eslatma yaratildi.');
     router.back();

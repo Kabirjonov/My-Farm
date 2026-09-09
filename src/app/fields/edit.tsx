@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { landService } from '@/features/crops';
 import { AreaUnit } from '@/types/domain';
@@ -19,6 +20,7 @@ export default function AddFieldScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
 
   const [name, setName] = useState('');
   const [area, setArea] = useState('');
@@ -51,9 +53,13 @@ export default function AddFieldScreen() {
       notes: notes || undefined,
     });
 
+    queryClient.invalidateQueries({ queryKey: ['land-fields'] });
+    queryClient.invalidateQueries({ queryKey: ['land-stats'] });
+
     Alert.alert('Muvaffaqiyatli', 'Yangi yer maydoni saqlandi.');
     router.back();
   };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

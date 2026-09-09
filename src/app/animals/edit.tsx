@@ -13,6 +13,7 @@ import { ArrowLeft } from 'lucide-react-native';
 import { Colors } from '@/constants/theme';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { animalFormSchema, AnimalFormInputs, livestockService } from '@/features/livestock';
 import { AnimalGender } from '@/types/domain';
 import { AppTextInput, AppSelect, AppButton } from '@/components/ui';
@@ -22,6 +23,8 @@ export default function EditAnimalScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
+
 
   const isEditing = Boolean(id);
   const existingAnimal = id ? livestockService.getAnimalById(id) : null;
@@ -125,8 +128,12 @@ export default function EditAnimalScreen() {
       Alert.alert('Muvaffaqiyatli', "Yangi hayvon ro'yxatga olindi.");
     }
 
+    queryClient.invalidateQueries({ queryKey: ['livestock'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock-stats'] });
+
     router.back();
   };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

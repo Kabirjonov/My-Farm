@@ -7,172 +7,244 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from 'react-native';
-import { Plus } from 'lucide-react-native';
-import { Colors } from '@/constants/theme';
+import { MapPin, Plus, Calendar, Leaf } from 'lucide-react-native';
+import { Colors, Radius, Shadow } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useLand } from '@/features/crops';
 import { RoleGuard } from '@/features/auth';
 import { useTranslation } from '@/i18n';
-import { AppTextInput, StatCard, EmptyState, LoadingState } from '@/components/ui';
+import { LoadingState } from '@/components/ui';
+
+const CROP_STATUS_CONFIG: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
+  GROWING:    { label: "O\u2019smoqda",   emoji: '🌱', color: '#2E7D32', bg: '#E8F5E9' },
+  HARVESTED:  { label: "Yig\u2019ildi",   emoji: '✅', color: '#1565C0', bg: '#E3F2FD' },
+  PLANTED:    { label: 'Ekildi',           emoji: '🌾', color: '#E65100', bg: '#FFF3E0' },
+  FALLOW:     { label: 'Dam olmoqda',      emoji: '🏕️', color: '#6D4C41', bg: '#EFEBE9' },
+  FAILED:     { label: 'Yaroqsiz',         emoji: '❌', color: '#C62828', bg: '#FFEBEE' },
+};
+
 
 export default function FieldsScreen() {
   const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const C = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const router = useRouter();
   const { t, formatEnum } = useTranslation();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const { fields, stats, isLoading } = useLand();
 
-  const filteredFields = fields.filter((f) =>
-    f.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  if (isLoading && !stats) {
+  if (isLoading) {
     return <LoadingState message={`${t('fields')}...`} />;
   }
 
+  const totalArea = fields.reduce((s, f) => s + f.area, 0);
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: C.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.subTitle, { color: colors.textSecondary }]}>{t('fields')}</Text>
-          <Text style={[styles.title, { color: colors.text }]}>{t('activeLand')}</Text>
+      <View style={[styles.header, { backgroundColor: C.backgroundElement, borderBottomColor: C.divider }]}>
+        <View style={styles.headerTop}>
+          <View style={styles.headerLeft}>
+            <View style={[styles.headerIconBg, { backgroundColor: C.successLight }]}>
+              <MapPin size={20} color={C.primary} />
+            </View>
+            <View>
+              <Text style={[styles.headerSub, { color: C.textSecondary }]}>{t('fields')}</Text>
+              <Text style={[styles.headerTitle, { color: C.text }]}>{t('yerVaEkinlar')}</Text>
+            </View>
+          </View>
+          <RoleGuard permission="LAND_MANAGE">
+            <TouchableOpacity
+              style={[styles.addBtn, { backgroundColor: C.primary }]}
+              onPress={() => router.push('/fields/edit' as any)}>
+              <Plus size={20} color="#fff" />
+            </TouchableOpacity>
+          </RoleGuard>
         </View>
-        <RoleGuard permission="LAND_MANAGE">
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.primary }]}
-            onPress={() => router.push('/fields/edit' as any)}>
-            <Plus size={22} color="white" />
-          </TouchableOpacity>
-        </RoleGuard>
+
+        {/* Stats */}
+        <View style={styles.statsRow}>
+          {[
+            { label: t('totalFields'), value: `${fields.length} ta`, color: C.primary, bg: C.successLight },
+            { label: t('totalArea'), value: `${totalArea.toFixed(1)} ga`, color: C.accentBlue, bg: '#E3F2FD' },
+            { label: t('activeCrops'), value: `${stats?.activeCropsCount ?? 0} ta`, color: C.accentAmber, bg: C.warningLight },
+          ].map((s, i) => (
+            <View key={i} style={[styles.statCard, { backgroundColor: s.bg }]}>
+              <Text style={[styles.statValue, { color: s.color }]}>{s.value}</Text>
+              <Text style={[styles.statLabel, { color: s.color, opacity: 0.8 }]}>{s.label}</Text>
+            </View>
+          ))}
+
+        </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-        {/* Dashboard Stats */}
-        <View style={styles.statsGrid}>
-          <StatCard title={t('activeLand')} value={`${stats?.totalAreaHectares || 0} ga`} accentColor={colors.primary} />
-          <StatCard title={t('cropHistory')} value={stats?.activeCropsCount || 0} accentColor={colors.accentAmber} />
-          <StatCard title={t('expectedHarvest')} value={stats?.upcomingHarvestsCount || 0} accentColor={colors.accentBlue} />
-        </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}>
 
-        {/* Search Bar */}
-        <AppTextInput
-          placeholder={t('search')}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-
-        {/* List Section Header */}
-        <View style={styles.listHeader}>
-          <Text style={[styles.listTitle, { color: colors.text }]}>{t('fields')} ({filteredFields.length})</Text>
-        </View>
-
-        {filteredFields.length === 0 ? (
-          <EmptyState
-            title={t('fields')}
-            description={t('noData')}
-            actionTitle={t('addField')}
-            onAction={() => router.push('/fields/edit' as any)}
-          />
+        {fields.length === 0 ? (
+          <View style={[styles.emptyBox, { backgroundColor: C.backgroundElement, borderColor: C.cardBorder }]}>
+            <Text style={{ fontSize: 48 }}>🌾</Text>
+            <Text style={[styles.emptyTitle, { color: C.text }]}>{t('noData')}</Text>
+            <Text style={[styles.emptyText, { color: C.textSecondary }]}>
+              Maydon qo'shish uchun + tugmasini bosing
+            </Text>
+          </View>
         ) : (
-          filteredFields.map((field) => (
-            <TouchableOpacity
-              key={field.id}
-              activeOpacity={0.8}
-              onPress={() => router.push({ pathname: '/crops/[id]' as any, params: { id: field.id } })}
-              style={[styles.fieldCard, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-              <View style={styles.cardHeader}>
-                <Text style={[styles.fieldName, { color: colors.text }]}>{field.name}</Text>
-                <View style={[styles.areaBadge, { backgroundColor: colors.primaryLight }]}>
-                  <Text style={[styles.areaText, { color: colors.primary }]}>
-                    {field.area} {formatEnum('unit', field.areaUnit)}
-                  </Text>
-                </View>
-              </View>
+          fields.map((field) => {
+            return (
+              <TouchableOpacity
+                key={field.id}
+                activeOpacity={0.85}
+                onPress={() => router.push({ pathname: '/fields/[id]', params: { id: field.id } } as any)}
+                style={[styles.fieldCard, { backgroundColor: C.backgroundElement, ...Shadow.card }]}>
 
-              <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                {t('location')}: {field.location || "-"} • {t('soilType')}: {field.soilType || '-'}
-              </Text>
-            </TouchableOpacity>
-          ))
+                {/* Field header row */}
+                <View style={styles.fieldTopRow}>
+                  <View style={styles.fieldTitleGroup}>
+                    <Text style={styles.fieldAreaEmoji}>🌍</Text>
+                    <View>
+                      <Text style={[styles.fieldName, { color: C.text }]}>{field.name}</Text>
+                      <Text style={[styles.fieldArea, { color: C.primary }]}>
+                        {field.area} {formatEnum('unit', field.areaUnit)}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.divider, { backgroundColor: C.divider }]} />
+
+                {/* Field meta */}
+                <View style={styles.fieldMeta}>
+                  {field.soilType && (
+                    <View style={styles.metaItem}>
+                      <Leaf size={13} color={C.textMuted} />
+                      <Text style={[styles.metaText, { color: C.textSecondary }]}>{field.soilType}</Text>
+                    </View>
+                  )}
+                  {field.waterSource && (
+                    <View style={styles.metaItem}>
+                      <Text style={styles.metaEmoji}>💧</Text>
+                      <Text style={[styles.metaText, { color: C.textSecondary }]}>{field.waterSource}</Text>
+                    </View>
+                  )}
+                  {!field.soilType && !field.waterSource && (
+                    <Text style={[styles.metaText, { color: C.textMuted }]}>
+                      📅 {t('addCrop')}
+                    </Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })
         )}
-        <View style={{ height: 40 }} />
+        <View style={{ height: 48 }} />
       </ScrollView>
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
+    paddingTop: 56,
+    borderBottomWidth: 1,
+    paddingBottom: 12,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 12,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  subTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerIconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  contentContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-    gap: 16,
+  headerSub: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  headerTitle: { fontSize: 20, fontWeight: '800', marginTop: 1 },
+  addBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statsGrid: {
+  statsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  statCard: {
+    flex: 1,
+    padding: 10,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+  },
+  statValue: { fontSize: 15, fontWeight: '800' },
+  statLabel: { fontSize: 10, fontWeight: '600', marginTop: 2, textAlign: 'center' },
+
+  content: { padding: 16, gap: 12 },
+
+  emptyBox: {
+    padding: 40,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 20,
+  },
+  emptyTitle: { fontSize: 16, fontWeight: '700' },
+  emptyText: { fontSize: 13, textAlign: 'center' },
+
+  fieldCard: {
+    padding: 14,
+    borderRadius: Radius.lg,
     gap: 10,
   },
-  listHeader: {
-    marginVertical: 4,
-  },
-  listTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  fieldCard: {
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 8,
-  },
-  cardHeader: {
+  fieldTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  fieldName: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  areaBadge: {
+  fieldTitleGroup: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  fieldAreaEmoji: { fontSize: 26 },
+  fieldName: { fontSize: 16, fontWeight: '700' },
+  fieldArea: { fontSize: 14, fontWeight: '700', marginTop: 2 },
+  cropStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: Radius.full,
   },
-  areaText: {
-    fontSize: 12,
-    fontWeight: '800',
+  cropStatusEmoji: { fontSize: 12 },
+  cropStatusText: { fontSize: 11, fontWeight: '700' },
+  divider: { height: 1 },
+  fieldMeta: { flexDirection: 'row', gap: 12 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaEmoji: { fontSize: 13 },
+  metaText: { fontSize: 12 },
+  cropBox: {
+    padding: 12,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    gap: 8,
   },
-  cardMeta: {
-    fontSize: 13,
+  cropTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
+  cropName: { flex: 1, fontSize: 13, fontWeight: '700' },
+  cropYield: { fontSize: 12, fontWeight: '600' },
+  cropDates: { flexDirection: 'row', gap: 16 },
+  cropDateItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cropDateText: { fontSize: 11 },
 });

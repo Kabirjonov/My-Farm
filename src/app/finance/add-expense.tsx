@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { financeService } from '@/features/finance';
 import { ExpenseCategory } from '@/types/domain';
@@ -19,6 +20,7 @@ export default function AddExpenseScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<ExpenseCategory>('FEED');
@@ -56,9 +58,13 @@ export default function AddExpenseScreen() {
       notes: notes || undefined,
     });
 
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['finance-summary'] });
+
     Alert.alert('Muvaffaqiyatli', 'Xarajat saqlandi.');
     router.back();
   };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

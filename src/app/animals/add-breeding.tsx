@@ -10,16 +10,18 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { healthService } from '@/features/health';
 import { BreedingResult } from '@/types/domain';
 import { AppTextInput, AppSelect, AppDatePicker, AppButton } from '@/components/ui';
 
-export default function AddBreedingScreen() {
+export default function AddBreedingRecordScreen() {
   const { animalId } = useLocalSearchParams<{ animalId: string }>();
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
 
   const [partnerAnimalId, setPartnerAnimalId] = useState('');
   const [breedingDate, setBreedingDate] = useState(new Date().toISOString().split('T')[0]);
@@ -55,6 +57,11 @@ export default function AddBreedingScreen() {
       childrenCount: Number(childrenCount) || 0,
       notes: notes || undefined,
     });
+
+    queryClient.invalidateQueries({ queryKey: ['breeding-records'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['reminders'] });
 
     Alert.alert('Muvaffaqiyatli', 'Naslchilik/Tug\'ish yozuvi va kutilayotgan tug\'ish sanasi eslatmasi saqlandi.');
     router.back();

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { landService } from '@/features/crops';
 import { HarvestQuality } from '@/types/domain';
@@ -20,6 +21,8 @@ export default function AddHarvestScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
+
 
   const cropSeason = cropSeasonId ? landService.getCropSeasonById(cropSeasonId) : null;
 
@@ -67,9 +70,17 @@ export default function AddHarvestScreen() {
       notes: notes || undefined,
     }, true);
 
+    queryClient.invalidateQueries({ queryKey: ['harvest-records'] });
+    queryClient.invalidateQueries({ queryKey: ['crop-seasons'] });
+    queryClient.invalidateQueries({ queryKey: ['land-fields'] });
+    queryClient.invalidateQueries({ queryKey: ['land-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['incomes'] });
+    queryClient.invalidateQueries({ queryKey: ['finance-summary'] });
+
     Alert.alert('Muvaffaqiyatli', 'Hosil yig\'im yozuvi saqlandi va ekin holati YIG\'ILGAN statusiga o\'tkazildi.');
     router.back();
   };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

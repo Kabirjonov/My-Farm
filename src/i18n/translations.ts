@@ -43,6 +43,24 @@ export const translations = {
     langUz: "O'zbekcha 🇺🇿",
     langRu: "Русский 🇷🇺",
 
+    // Auth & Profile
+    loginBtn: "Tizimga Kirish",
+    registerBtn: "Ro'yxatdan O'tish",
+    logoutBtn: "Tizimdan Chiqish",
+    profileEdit: "Profilni Tahrirlash",
+    fullName: "Ism va Familiya",
+    email: "Email pochta",
+    password: "Parol",
+    farmName: "Ferma nomi",
+    saveChanges: "Saqlash va Yangilash",
+    dontHaveAccount: "Hali hisobingiz yo'qmi?",
+    alreadyHaveAccount: "Allaqachon hisobingiz bormi?",
+    demoAccounts: "Tezkor Demo hisoblar",
+    ownerDemo: "Ega (Owner)",
+    managerDemo: "Menejer",
+    workerDemo: "Ishchi",
+
+
     // Animal Types
     typeSHEEP: "Qo'y",
     typeCOW: "Mol / Sig'ir",
@@ -165,6 +183,41 @@ export const translations = {
     genderFEMALE: "Urg'ochi",
     genderUNKNOWN: "Noma'lum",
     lowStockWarning: "Ombordagi ayrim yemlar minimal miqdordan kam qoldi.",
+
+    // Feed screen
+    feedStorage: "Yem Ombori",
+    yemOmbori: "Yem Ombori",
+    feedInventory: "Ombor",
+    feedTransactions: "Kirim/Chiqim",
+    feedIn: "Kirim",
+    feedOut: "Chiqim",
+    feedStatusOk: "Yetarli",
+    feedStatusLow: "Kam qoldi",
+    feedStatusCritical: "Kritik",
+
+    // Fields screen
+    yerVaEkinlar: "Yer va Ekinlar",
+    totalFields: "Jami Maydon",
+    totalArea: "Umumiy yuza",
+    activeCrops: "Faol Ekinlar",
+    planted: "Ekilgan",
+    harvest: "Yig'im",
+
+    // Finance screen
+    financeReport: "Moliyaviy Hisobot",
+    incomeExpenseChart: "Daromad va Xarajat",
+
+    // Reports screen
+    harvestReport: "Hosil Hisoboti",
+    livestockReport: "Chorva Hisoboti",
+
+    // Settings screen
+    activeFarm: "Faol Ferma",
+    role: "Rol",
+    version: "Versiya",
+
+    // Animal detail
+    analytics: "Tahlil",
   },
 
   ru: {
@@ -204,10 +257,27 @@ export const translations = {
     noData: "Данные не найдены",
 
     // Language Switcher
-    language: "Язык системы (Language)",
+    language: "Язык Системы (Language)",
     selectLanguage: "Выберите язык",
     langUz: "O'zbekcha 🇺🇿",
     langRu: "Русский 🇷🇺",
+
+    // Auth & Profile
+    loginBtn: "Войти в Систему",
+    registerBtn: "Зарегистрироваться",
+    logoutBtn: "Выйти из Аккаунта",
+    profileEdit: "Редактировать Профиль",
+    fullName: "Имя и Фамилия",
+    email: "Email почта",
+    password: "Пароль",
+    farmName: "Название фермы",
+    saveChanges: "Сохранить и Обновить",
+    dontHaveAccount: "Еще нет аккаунта?",
+    alreadyHaveAccount: "Уже есть аккаунт?",
+    demoAccounts: "Быстрый Демо вход",
+    ownerDemo: "Владелец (Owner)",
+    managerDemo: "Менеджер",
+    workerDemo: "Рабочий",
 
     // Animal Types
     typeSHEEP: "Овцы / Овца",
@@ -331,5 +401,40 @@ export const translations = {
     genderFEMALE: "Самка",
     genderUNKNOWN: "Неизвестно",
     lowStockWarning: "Запас некоторых кормов на исходе. Пополните склад.",
+
+    // Feed screen
+    feedStorage: "Склад Кормов",
+    yemOmbori: "Склад Кормов",
+    feedInventory: "Склад",
+    feedTransactions: "Приход/Расход",
+    feedIn: "Приход",
+    feedOut: "Расход",
+    feedStatusOk: "Достаточно",
+    feedStatusLow: "Мало",
+    feedStatusCritical: "Критично",
+
+    // Fields screen
+    yerVaEkinlar: "Поля и Урожай",
+    totalFields: "Всего Полей",
+    totalArea: "Общая Площадь",
+    activeCrops: "Активные Культуры",
+    planted: "Посеяно",
+    harvest: "Сбор Урожая",
+
+    // Finance screen
+    financeReport: "Финансовый Отчёт",
+    incomeExpenseChart: "Доходы и Расходы",
+
+    // Reports screen
+    harvestReport: "Отчёт по Урожаю",
+    livestockReport: "Отчёт по Скоту",
+
+    // Settings screen
+    activeFarm: "Активная Ферма",
+    role: "Роль",
+    version: "Версия",
+
+    // Animal detail
+    analytics: "Аналитика",
   },
 };

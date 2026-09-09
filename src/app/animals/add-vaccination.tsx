@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { healthService } from '@/features/health';
 import { AppTextInput, AppDatePicker, AppButton } from '@/components/ui';
@@ -19,6 +20,7 @@ export default function AddVaccinationScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
 
   const [vaccineName, setVaccineName] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -47,6 +49,12 @@ export default function AddVaccinationScreen() {
       cost: cost ? Number(cost) : undefined,
       notes: notes || undefined,
     });
+
+    queryClient.invalidateQueries({ queryKey: ['vaccinations'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock'] });
+    queryClient.invalidateQueries({ queryKey: ['livestock-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['reminders'] });
 
     Alert.alert('Muvaffaqiyatli', 'Emlash yozuvi va keyingi emlash eslatmasi saqlandi.');
     router.back();

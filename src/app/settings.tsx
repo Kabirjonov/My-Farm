@@ -1,22 +1,45 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
-import { Colors } from '@/constants/theme';
-import { Settings as SettingsIcon, User as UserIcon, Shield, Home, RefreshCw, Wifi, WifiOff, Globe } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  useColorScheme,
+  Alert,
+} from 'react-native';
+import {
+  Settings as SettingsIcon,
+  User as UserIcon,
+  Shield,
+  Home,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+  Globe,
+  ChevronRight,
+  Info,
+  LogOut,
+  LogIn,
+} from 'lucide-react-native';
+import { Colors, Radius, Shadow } from '@/constants/theme';
 import { useAuth, UserRole } from '@/features/auth';
 import { useSync } from '@/features/sync';
 import { useTranslation, Language } from '@/i18n';
 import { AppSelect, AppButton } from '@/components/ui';
+import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
-  const { user, switchRole, switchFarm } = useAuth();
+  const C = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const router = useRouter();
+  const { user, isAuthenticated, logout, switchRole, switchFarm } = useAuth();
   const { isOnline, setIsOnline, syncStatus, pendingCount, triggerSync } = useSync();
   const { t, language, setLanguage } = useTranslation();
 
   const languageOptions: { label: string; value: Language }[] = [
-    { label: t('langUz'), value: 'uz' },
-    { label: t('langRu'), value: 'ru' },
+    { label: '🇺🇿  O\'zbekcha', value: 'uz' },
+    { label: '🇷🇺  Русский', value: 'ru' },
   ];
 
   const roleOptions: { label: string; value: UserRole }[] = [
@@ -28,218 +51,356 @@ export default function SettingsScreen() {
   ];
 
   const farmOptions = [
-    { label: 'Chorvador Ferma', value: 'farm-001' },
+    { label: user?.currentFarmName || 'Chorvador Ferma', value: user?.currentFarmId || 'farm-001' },
     { label: 'Vodiy Dehqonchilik', value: 'farm-002' },
   ];
 
+  const syncBadgeColor = () => {
+    switch (syncStatus) {
+      case 'SYNCED': return { bg: C.successLight, text: C.success };
+      case 'SYNCING': return { bg: C.warningLight, text: C.warning };
+      default: return { bg: C.dangerLight, text: C.danger };
+    }
+  };
+  const syncBadge = syncBadgeColor();
+
+  const handleLogout = () => {
+    Alert.alert(
+      t('logoutBtn'),
+      'Rostdan ham tizimdan chiqmoqchimisiz?',
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('logoutBtn'),
+          style: 'destructive',
+          onPress: () => {
+            logout();
+            router.replace('/login' as any);
+          },
+        },
+      ]
+    );
+  };
+
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <SettingsIcon size={28} color={colors.primary} />
-        <Text style={[styles.title, { color: colors.text }]}>{t('settings')}</Text>
+    <View style={[styles.container, { backgroundColor: C.background }]}>
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: C.backgroundElement, borderBottomColor: C.divider }]}>
+        <View style={[styles.headerIconBg, { backgroundColor: C.successLight }]}>
+          <SettingsIcon size={20} color={C.primary} />
+        </View>
+        <Text style={[styles.headerTitle, { color: C.text }]}>{t('settings')}</Text>
       </View>
 
-      {/* User Profile Card */}
-      {user && (
-        <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-          <View style={styles.userRow}>
-            <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
-              <UserIcon size={24} color={colors.primary} />
-            </View>
-            <View>
-              <Text style={[styles.userName, { color: colors.text }]}>{user.fullName}</Text>
-              <Text style={[styles.userEmail, { color: colors.textSecondary }]}>{user.email}</Text>
-            </View>
-          </View>
-        </View>
-      )}
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-      {/* Language Switcher Card (Uzbek / Russian) */}
-      <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-        <View style={styles.cardHeader}>
-          <Globe size={20} color={colors.primary} />
-          <Text style={[styles.cardTitle, { color: colors.text }]}>{t('language')}</Text>
-        </View>
-        <AppSelect
-          label={t('selectLanguage')}
-          options={languageOptions}
-          selectedValue={language}
-          onValueChange={(val) => setLanguage(val as Language)}
-        />
-      </View>
-
-      {/* Offline Sync Status & Queue Card */}
-      <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-        <View style={styles.rowBetween}>
-          <View style={styles.cardHeader}>
-            <RefreshCw size={20} color={colors.primary} />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Offline Sync</Text>
-          </View>
+        {/* Profile Card */}
+        {isAuthenticated && user ? (
           <TouchableOpacity
-            style={[styles.networkBadge, { backgroundColor: isOnline ? colors.primaryLight : '#FEE2E2' }]}
-            onPress={() => setIsOnline(!isOnline)}>
-            {isOnline ? <Wifi size={14} color={colors.primary} /> : <WifiOff size={14} color={colors.danger} />}
-            <Text style={[styles.networkText, { color: isOnline ? colors.primary : colors.danger }]}>
-              {isOnline ? 'Online' : 'Offline'}
-            </Text>
+            activeOpacity={0.9}
+            onPress={() => router.push('/profile-edit' as any)}
+            style={[styles.profileCard, { backgroundColor: C.primary, ...Shadow.card }]}>
+            <View style={[styles.avatar, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
+              <Text style={styles.avatarText}>
+                {(user.fullName || 'U').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName}>{user.fullName}</Text>
+              <Text style={styles.profileEmail}>{user.email}</Text>
+              <View style={[styles.roleBadge]}>
+                <Text style={styles.roleBadgeText}>{t(`role${user.role}` as any)}</Text>
+              </View>
+            </View>
+            <View style={styles.editBtn}>
+              <ChevronRight size={20} color="rgba(255,255,255,0.85)" />
+            </View>
           </TouchableOpacity>
-        </View>
+        ) : (
+          <View style={[styles.unauthCard, { backgroundColor: C.backgroundElement, ...Shadow.card }]}>
+            <Text style={[styles.unauthTitle, { color: C.text }]}>Tizimga kirmagansiz</Text>
+            <AppButton
+              title={t('loginBtn')}
+              onPress={() => router.push('/login' as any)}
+            />
+          </View>
+        )}
 
-        <View style={styles.rowBetween}>
-          <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>{t('status')}:</Text>
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor:
-                  syncStatus === 'SYNCED'
-                    ? colors.primaryLight
-                    : syncStatus === 'SYNCING'
-                    ? '#FEF3C7'
-                    : '#FEE2E2',
-              },
-            ]}>
-            <Text
-              style={[
-                styles.statusBadgeText,
-                {
-                  color:
-                    syncStatus === 'SYNCED'
-                      ? colors.primary
-                      : syncStatus === 'SYNCING'
-                      ? colors.warning
-                      : colors.danger,
-                },
-              ]}>
-              {t(`sync${syncStatus}` as any)}
-            </Text>
+        {/* Language Card */}
+        <View style={[styles.section, { backgroundColor: C.backgroundElement, ...Shadow.card }]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.iconBox, { backgroundColor: C.successLight }]}>
+              <Globe size={18} color={C.primary} />
+            </View>
+            <Text style={[styles.sectionTitle, { color: C.text }]}>{t('language')}</Text>
+          </View>
+          <View style={styles.langRow}>
+            {languageOptions.map((lang) => (
+              <TouchableOpacity
+                key={lang.value}
+                onPress={() => setLanguage(lang.value)}
+                style={[
+                  styles.langBtn,
+                  {
+                    backgroundColor: language === lang.value ? C.primary : C.background,
+                    borderColor: language === lang.value ? C.primary : C.cardBorder,
+                  },
+                ]}>
+                <Text style={[
+                  styles.langBtnText,
+                  { color: language === lang.value ? '#fff' : C.text },
+                ]}>
+                  {lang.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
-        <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-          SyncQueue: {pendingCount}
-        </Text>
+        {/* Sync Status Card */}
+        <View style={[styles.section, { backgroundColor: C.backgroundElement, ...Shadow.card }]}>
+          <View style={styles.sectionHeaderRow}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.iconBox, { backgroundColor: '#E3F2FD' }]}>
+                <RefreshCw size={18} color={C.accentBlue} />
+              </View>
+              <Text style={[styles.sectionTitle, { color: C.text }]}>Offline Sync</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.networkBadge, { backgroundColor: isOnline ? C.successLight : C.dangerLight }]}
+              onPress={() => setIsOnline(!isOnline)}>
+              {isOnline
+                ? <Wifi size={13} color={C.success} />
+                : <WifiOff size={13} color={C.danger} />}
+              <Text style={[styles.networkText, { color: isOnline ? C.success : C.danger }]}>
+                {isOnline ? 'Online' : 'Offline'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        <AppButton
-          title={t('retry')}
-          onPress={triggerSync}
-          style={{ marginTop: 4 }}
-        />
-      </View>
+          <View style={styles.syncInfoRow}>
+            <Text style={[styles.syncLabel, { color: C.textSecondary }]}>{t('status')}:</Text>
+            <View style={[styles.statusBadge, { backgroundColor: syncBadge.bg }]}>
+              <Text style={[styles.statusBadgeText, { color: syncBadge.text }]}>
+                {t(`sync${syncStatus}` as any)}
+              </Text>
+            </View>
+          </View>
 
-      {/* Active Farm Switcher Card */}
-      <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-        <View style={styles.cardHeader}>
-          <Home size={20} color={colors.primary} />
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Faol Ferma</Text>
+          <View style={styles.syncInfoRow}>
+            <Text style={[styles.syncLabel, { color: C.textSecondary }]}>Kutayotgan:</Text>
+            <Text style={[styles.syncValue, { color: C.text }]}>{pendingCount} ta</Text>
+          </View>
+
+          <AppButton
+            title={t('retry')}
+            onPress={triggerSync}
+            style={{ marginTop: 4 }}
+          />
         </View>
-        <AppSelect
-          options={farmOptions}
-          selectedValue={user?.currentFarmId || 'farm-001'}
-          onValueChange={(val) => {
-            const found = farmOptions.find((f) => f.value === val);
-            if (found) switchFarm(found.value, found.label);
-          }}
-        />
-      </View>
 
-      {/* Role Switcher (Permission Demo) */}
-      <View style={[styles.card, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-        <View style={styles.cardHeader}>
-          <Shield size={20} color={colors.primary} />
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Foydalanuvchi Roli (RBAC)</Text>
+        {/* Farm Switcher */}
+        <View style={[styles.section, { backgroundColor: C.backgroundElement, ...Shadow.card }]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.iconBox, { backgroundColor: C.warningLight }]}>
+              <Home size={18} color={C.accentAmber} />
+            </View>
+            <Text style={[styles.sectionTitle, { color: C.text }]}>{t('activeFarm')}</Text>
+          </View>
+          <AppSelect
+            options={farmOptions}
+            selectedValue={user?.currentFarmId || 'farm-001'}
+            onValueChange={(val) => {
+              const found = farmOptions.find((f) => f.value === val);
+              if (found) switchFarm(found.value, found.label);
+            }}
+          />
         </View>
-        <AppSelect
-          options={roleOptions}
-          selectedValue={user?.role || 'OWNER'}
-          onValueChange={(val) => switchRole(val as UserRole)}
-        />
-      </View>
-      <View style={{ height: 40 }} />
-    </ScrollView>
+
+        {/* Role Switcher */}
+        <View style={[styles.section, { backgroundColor: C.backgroundElement, ...Shadow.card }]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.iconBox, { backgroundColor: '#EDE7F6' }]}>
+              <Shield size={18} color="#7B1FA2" />
+            </View>
+            <Text style={[styles.sectionTitle, { color: C.text }]}>{t('role')} (RBAC)</Text>
+          </View>
+          <AppSelect
+            options={roleOptions}
+            selectedValue={user?.role || 'OWNER'}
+            onValueChange={(val) => switchRole(val as UserRole)}
+          />
+        </View>
+
+        {/* App Info */}
+        <View style={[styles.section, { backgroundColor: C.backgroundElement, ...Shadow.card }]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.iconBox, { backgroundColor: C.successLight }]}>
+              <Info size={18} color={C.primary} />
+            </View>
+            <Text style={[styles.sectionTitle, { color: C.text }]}>{t('appName')}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: C.textSecondary }]}>{t('version')}</Text>
+            <Text style={[styles.infoValue, { color: C.text }]}>1.0.0</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: C.textSecondary }]}>Platform</Text>
+            <Text style={[styles.infoValue, { color: C.text }]}>Expo SDK 57</Text>
+          </View>
+        </View>
+
+        {/* Logout Button */}
+        {isAuthenticated && (
+          <AppButton
+            title={t('logoutBtn')}
+            variant="danger"
+            onPress={handleLogout}
+            style={{ marginTop: 6 }}
+          />
+        )}
+
+        <View style={{ height: 60 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 16,
-    paddingTop: 60,
-    gap: 16,
-  },
+  container: { flex: 1 },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  card: {
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 12,
-  },
-  userRow: {
+    paddingTop: 56,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    borderBottomWidth: 1,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  headerIconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  userName: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  userEmail: {
-    fontSize: 13,
-  },
-  cardHeader: {
+  headerTitle: { fontSize: 22, fontWeight: '800' },
+
+  content: { padding: 16, gap: 14 },
+
+  profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 14,
+    padding: 18,
+    borderRadius: Radius.lg,
   },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+  unauthCard: {
+    padding: 20,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    gap: 12,
   },
-  cardSubtitle: {
-    fontSize: 13,
+  unauthTitle: { fontSize: 16, fontWeight: '700' },
+
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  rowBetween: {
+  avatarText: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  profileInfo: { flex: 1, gap: 3 },
+  profileName: { fontSize: 17, fontWeight: '800', color: '#fff' },
+  profileEmail: { fontSize: 13, color: 'rgba(255,255,255,0.8)' },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+    marginTop: 2,
+  },
+  roleBadgeText: { fontSize: 11, fontWeight: '700', color: '#fff' },
+  editBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  section: {
+    padding: 16,
+    borderRadius: Radius.lg,
+    gap: 12,
+  },
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionTitle: { fontSize: 15, fontWeight: '700' },
+
+  langRow: { flexDirection: 'row', gap: 10 },
+  langBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    alignItems: 'center',
+  },
+  langBtnText: { fontSize: 13, fontWeight: '700' },
+
   networkBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Radius.full,
   },
-  networkText: {
-    fontSize: 11,
-    fontWeight: '700',
+  networkText: { fontSize: 12, fontWeight: '700' },
+
+  syncInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
+  syncLabel: { fontSize: 13 },
+  syncValue: { fontSize: 13, fontWeight: '700' },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: Radius.full,
   },
-  statusBadgeText: {
-    fontSize: 11,
-    fontWeight: '800',
+  statusBadgeText: { fontSize: 11, fontWeight: '800' },
+
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
   },
+  infoLabel: { fontSize: 13 },
+  infoValue: { fontSize: 13, fontWeight: '600' },
 });

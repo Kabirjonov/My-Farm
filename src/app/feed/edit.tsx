@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { Colors } from '@/constants/theme';
 import { feedService } from '@/features/feed';
 import { FeedUnit } from '@/types/domain';
@@ -19,6 +20,7 @@ export default function AddFeedItemScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const queryClient = useQueryClient();
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Ozuqa');
@@ -52,9 +54,13 @@ export default function AddFeedItemScreen() {
       notes: notes || undefined,
     });
 
+    queryClient.invalidateQueries({ queryKey: ['feed-items'] });
+    queryClient.invalidateQueries({ queryKey: ['feed-stats'] });
+
     Alert.alert('Muvaffaqiyatli', 'Yangi yem zaxiraga saqlandi.');
     router.back();
   };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

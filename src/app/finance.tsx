@@ -23,6 +23,7 @@ export default function FinanceScreen() {
 
   const [activeTab, setActiveTab] = useState<'expenses' | 'incomes'>('expenses');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   const { expenses, incomes, summary, isLoading } = useFinance();
 
@@ -32,17 +33,27 @@ export default function FinanceScreen() {
 
   const isProfitPositive = (summary?.netProfit || 0) >= 0;
 
-  const filteredExpenses = expenses.filter(
-    (e) =>
-      e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
-  const filteredIncomes = incomes.filter(
-    (i) =>
+  const filteredExpenses = expenses.filter((e) => {
+    const matchesSearch =
+      !searchQuery.trim() ||
+      e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (e.notes && e.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory = selectedCategory === 'ALL' || e.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const filteredIncomes = incomes.filter((i) => {
+    const matchesSearch =
+      !searchQuery.trim() ||
       i.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      i.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      i.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (i.notes && i.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory = selectedCategory === 'ALL' || i.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
