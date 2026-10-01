@@ -33,10 +33,10 @@ export default function AddExpenseScreen() {
     { label: 'Dori-darmon (Medicine)', value: 'MEDICINE' },
     { label: 'Veterinar xizmati (Vet)', value: 'VET' },
     { label: 'Ishchilar maoshi (Worker)', value: 'WORKER' },
-    { label: 'Urug&apos;lik (Seed)', value: 'SEED' },
-    { label: 'O&apos;g&apos;itlar (Fertilizer)', value: 'FERTILIZER' },
+    { label: "Urug'lik (Seed)", value: 'SEED' },
+    { label: "O'g'itlar (Fertilizer)", value: 'FERTILIZER' },
     { label: 'Suv (Water)', value: 'WATER' },
-    { label: 'Transport / Yoqilg&apos;i (Transport)', value: 'TRANSPORT' },
+    { label: "Transport / Yoqilg'i (Transport)", value: 'TRANSPORT' },
     { label: 'Texnika va uskuna (Equipment)', value: 'EQUIPMENT' },
     { label: 'Boshqa (Other)', value: 'OTHER' },
   ];

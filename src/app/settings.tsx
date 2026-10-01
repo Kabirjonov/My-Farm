@@ -34,7 +34,7 @@ export default function SettingsScreen() {
   const C = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const router = useRouter();
   const { user, isAuthenticated, logout, switchRole, switchFarm } = useAuth();
-  const { isOnline, setIsOnline, syncStatus, pendingCount, triggerSync } = useSync();
+  const { isOnline, syncStatus, pendingCount, triggerSync } = useSync();
   const { t, language, setLanguage } = useTranslation();
 
   const languageOptions: { label: string; value: Language }[] = [
@@ -166,16 +166,15 @@ export default function SettingsScreen() {
               </View>
               <Text style={[styles.sectionTitle, { color: C.text }]}>Offline Sync</Text>
             </View>
-            <TouchableOpacity
-              style={[styles.networkBadge, { backgroundColor: isOnline ? C.successLight : C.dangerLight }]}
-              onPress={() => setIsOnline(!isOnline)}>
+            <View
+              style={[styles.networkBadge, { backgroundColor: isOnline ? C.successLight : C.dangerLight }]}>
               {isOnline
                 ? <Wifi size={13} color={C.success} />
                 : <WifiOff size={13} color={C.danger} />}
               <Text style={[styles.networkText, { color: isOnline ? C.success : C.danger }]}>
                 {isOnline ? 'Online' : 'Offline'}
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.syncInfoRow}>

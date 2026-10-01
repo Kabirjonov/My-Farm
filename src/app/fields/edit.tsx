@@ -67,7 +67,7 @@ export default function AddFieldScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Yangi Yer Qo&apos;shish</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Yangi Yer Qo'shish</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">

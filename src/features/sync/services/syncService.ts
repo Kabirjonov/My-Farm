@@ -1,123 +1,96 @@
 import { syncQueueRepository } from '@/lib/db';
 import { SyncQueue } from '@/types/domain';
+import { apiClient } from '@/lib/api/client';
+
+const ENTITY_TYPE_MAP: Record<string, string> = {
+  Animal: 'ANIMAL',
+  HealthRecord: 'HEALTH_RECORD',
+  VaccinationRecord: 'VACCINATION',
+  BreedingRecord: 'BREEDING',
+  FeedItem: 'FEED_ITEM',
+  FeedTransaction: 'FEED_TRANSACTION',
+  LandField: 'FIELD',
+  CropSeason: 'CROP_SEASON',
+  HarvestRecord: 'HARVEST',
+  Expense: 'EXPENSE',
+  Income: 'INCOME',
+};
 
 export const syncService = {
-  // Backend Interface Stubs for Cloud Sync Integration
-  async syncAnimal(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing Animal to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncHealthRecord(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing HealthRecord to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncVaccinationRecord(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing VaccinationRecord to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncBreedingRecord(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing BreedingRecord to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncFeedItem(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing FeedItem to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncFeedTransaction(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing FeedTransaction to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncLandField(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing LandField to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncCropSeason(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing CropSeason to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncHarvestRecord(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing HarvestRecord to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncExpense(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing Expense to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
-  async syncIncome(item: SyncQueue): Promise<boolean> {
-    console.log('[SyncService] Syncing Income to Cloud:', item.entityId, item.operation);
-    return Promise.resolve(true);
-  },
-
   async processSyncQueue(): Promise<{ successCount: number; failCount: number }> {
     const queue = syncQueueRepository.getPendingOrFailed();
+    if (queue.length === 0) {
+      return { successCount: 0, failCount: 0 };
+    }
+
     let successCount = 0;
     let failCount = 0;
 
-    for (const item of queue) {
+    const mutations = queue.map((item) => {
       syncQueueRepository.updateStatus(item.id, 'SYNCING');
+      let payload = {};
       try {
-        let isSynced = false;
-        switch (item.entityType) {
-          case 'Animal':
-            isSynced = await this.syncAnimal(item);
-            break;
-          case 'HealthRecord':
-            isSynced = await this.syncHealthRecord(item);
-            break;
-          case 'VaccinationRecord':
-            isSynced = await this.syncVaccinationRecord(item);
-            break;
-          case 'BreedingRecord':
-            isSynced = await this.syncBreedingRecord(item);
-            break;
-          case 'FeedItem':
-            isSynced = await this.syncFeedItem(item);
-            break;
-          case 'FeedTransaction':
-            isSynced = await this.syncFeedTransaction(item);
-            break;
-          case 'LandField':
-            isSynced = await this.syncLandField(item);
-            break;
-          case 'CropSeason':
-            isSynced = await this.syncCropSeason(item);
-            break;
-          case 'HarvestRecord':
-            isSynced = await this.syncHarvestRecord(item);
-            break;
-          case 'Expense':
-            isSynced = await this.syncExpense(item);
-            break;
-          case 'Income':
-            isSynced = await this.syncIncome(item);
-            break;
-          default:
-            isSynced = true;
-        }
+        payload = JSON.parse(item.payloadJson);
+      } catch {
+        payload = {};
+      }
 
-        if (isSynced) {
+      const mappedEntityType = ENTITY_TYPE_MAP[item.entityType] || item.entityType.toUpperCase();
+      const mappedAction = item.operation === 'ARCHIVE' ? 'DELETE' : item.operation;
+
+      return {
+        clientMutationId: item.id,
+        entityType: mappedEntityType,
+        action: mappedAction,
+        payload,
+      };
+    });
+
+    try {
+      const response = await apiClient.post<{
+        results: Array<{
+          clientMutationId: string;
+          status: 'SYNCED' | 'ALREADY_PROCESSED' | 'ERROR';
+          entityType: string;
+          error?: string;
+        }>;
+        syncedAt: string;
+      }>('/sync/batch', { mutations });
+
+      const resultMap = new Map(
+        (response.data?.results || []).map((r) => [r.clientMutationId, r])
+      );
+
+      for (const item of queue) {
+        const res = resultMap.get(item.id);
+        if (res && (res.status === 'SYNCED' || res.status === 'ALREADY_PROCESSED')) {
           syncQueueRepository.markDone(item.id);
           successCount++;
         } else {
-          syncQueueRepository.updateStatus(item.id, 'FAILED', 'Server reject');
+          syncQueueRepository.updateStatus(
+            item.id,
+            'FAILED',
+            res?.error || 'Unknown sync error'
+          );
           failCount++;
         }
-      } catch (err: any) {
+      }
+    } catch (err: any) {
+      console.error('[SyncService] Batch sync failed:', err);
+      for (const item of queue) {
         syncQueueRepository.updateStatus(item.id, 'FAILED', err?.message || 'Network error');
         failCount++;
       }
     }
 
     return { successCount, failCount };
+  },
+
+  async pullDelta(lastSyncedAt?: string) {
+    const endpoint = lastSyncedAt
+      ? `/sync/delta?lastSyncedAt=${encodeURIComponent(lastSyncedAt)}`
+      : '/sync/delta';
+    const response = await apiClient.get<any>(endpoint);
+    return response.data;
   },
 };

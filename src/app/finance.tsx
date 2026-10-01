@@ -151,7 +151,7 @@ export default function FinanceScreen() {
                     </Text>
                   </View>
                   <Text style={[styles.itemAmount, { color: colors.danger }]}>
-                    -{exp.amount.toLocaleString()} so&apos;m
+                    -{exp.amount.toLocaleString()} so'm
                   </Text>
                 </View>
               </View>
@@ -172,7 +172,7 @@ export default function FinanceScreen() {
                   </Text>
                 </View>
                 <Text style={[styles.itemAmount, { color: colors.primary }]}>
-                  +{inc.amount.toLocaleString()} so&apos;m
+                  +{inc.amount.toLocaleString()} so'm
                 </Text>
               </View>
             </View>

@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   useColorScheme,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Tractor, ArrowLeft } from 'lucide-react-native';
@@ -28,6 +27,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('OWNER');
   const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const roleOptions: { label: string; value: UserRole }[] = [
     { label: t('roleOWNER'), value: 'OWNER' },
@@ -36,15 +36,25 @@ export default function RegisterScreen() {
     { label: t('roleVET'), value: 'VET' },
   ];
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!fullName.trim() || !email.trim()) {
       setErrorMsg('Ism-familiya va Email kiritilishi shart!');
       return;
     }
+    if (!password || password.length < 6) {
+      setErrorMsg('Parol kamida 6 ta belgidan iborat bo\'lishi kerak!');
+      return;
+    }
     setErrorMsg('');
-    register(fullName, email, farmName, role);
-    Alert.alert(t('success'), "Ro'yxatdan muvaffaqiyatli o'tdingiz!");
-    router.replace('/');
+    setLoading(true);
+    try {
+      await register(fullName.trim(), email.trim(), password, farmName.trim() || 'Mening Fermam');
+      router.replace('/');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Xatolik yuz berdi. Qayta urinib ko\'ring.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

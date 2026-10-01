@@ -9,6 +9,8 @@ export const animalFormSchema = z.object({
   breed: z.string().min(1, 'Zot kiritilishi shart'),
   weight: z.number().min(0.1, "Vazn to'g'ri kiritilishi shart"),
   age: z.number().min(0).optional(),
+  purchasePrice: z.number().min(0).optional(),
+  purchaseDate: z.string().optional(),
   notes: z.string().optional(),
 });
 

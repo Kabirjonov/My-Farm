@@ -10,16 +10,16 @@ export function LivestockScreenView() {
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const { animals, isLoading, isError } = useLivestock();
 
-  if (isLoading) return <LoadingState message="Chorva ro&apos;yxati yuklanmoqda..." />;
-  if (isError) return <ErrorState title="Xatolik" error="Chorva ro&apos;yxatini yuklab bo&apos;lmadi." />;
+  if (isLoading) return <LoadingState message="Chorva ro'yxati yuklanmoqda..." />;
+  if (isError) return <ErrorState title="Xatolik" error="Chorva ro'yxatini yuklab bo'lmadi." />;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.headerTitle, { color: colors.text }]}>Chorva Ro&apos;yxati</Text>
+      <Text style={[styles.headerTitle, { color: colors.text }]}>Chorva Ro'yxati</Text>
       {animals.length === 0 ? (
         <EmptyState
           title="Hayvonlar topilmadi"
-          description="Hozircha fermangizda ro&apos;yxatga olingan hayvonlar yo&apos;q."
+          description="Hozircha fermangizda ro'yxatga olingan hayvonlar yo'q."
         />
       ) : (
         <FlatList

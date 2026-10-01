@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
 import { Tabs, usePathname, useRouter } from 'expo-router';
-import { Platform, useColorScheme } from 'react-native';
+import { Platform, useColorScheme, ActivityIndicator, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { LayoutDashboard, Sprout, Wheat, PawPrint, BarChart2 } from 'lucide-react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useSafeAreaInsets, SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/theme';
 import { initDatabase } from '@/lib/db/db';
 import { useTranslation } from '@/i18n';
 import { useAuth } from '@/features/auth';
+import { useAuthStore } from '@/features/auth/store/useAuthStore';
 
 const queryClient = new QueryClient();
 
@@ -21,8 +23,10 @@ function TabsNavigator() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const isAuthScreen = !isAuthenticated || pathname === '/login' || pathname === '/register';
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 12);
 
   useEffect(() => {
     if (!isAuthenticated && pathname !== '/login' && pathname !== '/register') {
@@ -42,9 +46,9 @@ function TabsNavigator() {
               backgroundColor: colors.backgroundElement,
               borderTopColor: colors.cardBorder,
               borderTopWidth: 1,
-              height: Platform.OS === 'ios' ? 84 : 68,
-              paddingBottom: Platform.OS === 'ios' ? 24 : 10,
-              paddingTop: 8,
+              height: 54 + bottomInset,
+              paddingBottom: bottomInset + 4,
+              paddingTop: 6,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: -2 },
               shadowOpacity: 0.06,
@@ -119,6 +123,7 @@ function TabsNavigator() {
       <Tabs.Screen name="animals/add-health" options={{ href: null }} />
       <Tabs.Screen name="animals/add-vaccination" options={{ href: null }} />
       <Tabs.Screen name="animals/add-breeding" options={{ href: null }} />
+      <Tabs.Screen name="animals/add-reminder" options={{ href: null }} />
       <Tabs.Screen name="feed/[id]" options={{ href: null }} />
       <Tabs.Screen name="feed/edit" options={{ href: null }} />
       <Tabs.Screen name="feed/add-transaction" options={{ href: null }} />
@@ -133,6 +138,11 @@ function TabsNavigator() {
 }
 
 export default function RootLayout() {
+  const bootstrap = useAuthStore((s) => s.bootstrap);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const colorScheme = useColorScheme();
+  const C = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
+
   useEffect(() => {
     // Initialize local SQLite database
     try {
@@ -141,20 +151,32 @@ export default function RootLayout() {
       // Ignore DB init errors
     }
 
-    // Safely hide splash screen on mount
-    const hideSplash = async () => {
+    // Restore auth session from SecureStore, then hide splash
+    const init = async () => {
+      await bootstrap();
       try {
         await SplashScreen.hideAsync();
       } catch {
         // Ignore splash errors
       }
     };
-    hideSplash();
-  }, []);
+    init();
+  }, [bootstrap]);
+
+  // Show spinner while restoring session
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.background }}>
+        <ActivityIndicator size="large" color={C.primary} />
+      </View>
+    );
+  }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TabsNavigator />
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <TabsNavigator />
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

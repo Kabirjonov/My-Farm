@@ -3,7 +3,18 @@ import { hasPermission } from '../permissions';
 import { PermissionAction, UserRole } from '../types';
 
 export function useAuth() {
-  const { user, isAuthenticated, login, register, updateProfile, logout, switchRole, switchFarm } = useAuthStore();
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    bootstrap,
+    login,
+    register,
+    updateProfile,
+    logout,
+    switchRole,
+    switchFarm,
+  } = useAuthStore();
 
   const checkPermission = (action: PermissionAction): boolean => {
     if (!user) return false;
@@ -14,6 +25,8 @@ export function useAuth() {
     user,
     role: user?.role || ('VIEWER' as UserRole),
     isAuthenticated,
+    isLoading,
+    bootstrap,
     login,
     register,
     updateProfile,

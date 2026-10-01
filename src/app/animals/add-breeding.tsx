@@ -32,7 +32,7 @@ export default function AddBreedingRecordScreen() {
 
   const resultOptions: { label: string; value: BreedingResult }[] = [
     { label: 'Homilador (Pregnant)', value: 'PREGNANT' },
-    { label: 'Tug&apos;ildi (Birth Done)', value: 'BIRTH_DONE' },
+    { label: "Tug'ildi (Birth Done)", value: 'BIRTH_DONE' },
     { label: 'Natijasiz (Not Pregnant)', value: 'NOT_PREGNANT' },
     { label: 'Muvaffaqiyatsiz (Failed)', value: 'FAILED' },
   ];
@@ -73,7 +73,7 @@ export default function AddBreedingRecordScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Naslchilik Yozuvini Qo&apos;shish</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Naslchilik Yozuvini Qo'shish</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">

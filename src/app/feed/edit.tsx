@@ -68,7 +68,7 @@ export default function AddFeedItemScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Yangi Yem Turi Qo&apos;shish</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Yangi Yem Turi Qo'shish</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">

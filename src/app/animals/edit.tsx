@@ -44,6 +44,8 @@ export default function EditAnimalScreen() {
       breed: '',
       weight: 45,
       status: 'HEALTHY',
+      purchasePrice: undefined,
+      purchaseDate: '',
       notes: '',
     },
   });
@@ -64,6 +66,12 @@ export default function EditAnimalScreen() {
           ? existingAnimal.healthStatus
           : 'HEALTHY'
       );
+      if (typeof existingAnimal.purchasePrice === 'number') {
+        setValue('purchasePrice', existingAnimal.purchasePrice);
+      }
+      if (existingAnimal.purchaseDate) {
+        setValue('purchaseDate', existingAnimal.purchaseDate);
+      }
       setValue('notes', existingAnimal.notes ?? '');
     }
   }, [existingAnimal, setValue]);
@@ -108,6 +116,8 @@ export default function EditAnimalScreen() {
         breed: data.breed,
         weightKg: data.weight,
         healthStatus: data.status,
+        purchasePrice: data.purchasePrice,
+        purchaseDate: data.purchaseDate,
         notes: data.notes,
       });
       Alert.alert('Muvaffaqiyatli', "Hayvon ma'lumotlari yangilandi.");
@@ -123,6 +133,8 @@ export default function EditAnimalScreen() {
         weightKg: data.weight,
         status: 'ACTIVE',
         healthStatus: data.status,
+        purchasePrice: data.purchasePrice,
+        purchaseDate: data.purchaseDate,
         notes: data.notes,
       });
       Alert.alert('Muvaffaqiyatli', "Yangi hayvon ro'yxatga olindi.");
@@ -249,6 +261,37 @@ export default function EditAnimalScreen() {
               selectedValue={value}
               onValueChange={onChange}
               error={errors.status?.message}
+            />
+          )}
+        />
+
+        {/* Purchase Price */}
+        <Controller
+          control={control}
+          name="purchasePrice"
+          render={({ field: { value, onChange } }) => (
+            <AppTextInput
+              label="Sotib olingan narxi (UZS, ixtiyoriy)"
+              placeholder="Masalan: 2500000"
+              keyboardType="numeric"
+              value={value !== undefined && value !== null ? String(value) : ''}
+              onChangeText={(val) => onChange(val ? Number(val) : undefined)}
+              error={errors.purchasePrice?.message}
+            />
+          )}
+        />
+
+        {/* Purchase Date */}
+        <Controller
+          control={control}
+          name="purchaseDate"
+          render={({ field: { value, onChange } }) => (
+            <AppTextInput
+              label="Sotib olingan sanasi (YYYY-MM-DD, ixtiyoriy)"
+              placeholder="Masalan: 2024-03-10"
+              value={value || ''}
+              onChangeText={onChange}
+              error={errors.purchaseDate?.message}
             />
           )}
         />

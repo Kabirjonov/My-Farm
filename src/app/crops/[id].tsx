@@ -88,7 +88,7 @@ export default function FieldDetailScreen() {
 
         {cropSeasons.length === 0 ? (
           <View style={[styles.emptyBox, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-            <Text style={{ color: colors.textSecondary }}>Hozircha ekilgan ekinlar tarixi yo&apos;q.</Text>
+            <Text style={{ color: colors.textSecondary }}>Hozircha ekilgan ekinlar tarixi yo'q.</Text>
           </View>
         ) : (
           cropSeasons.map((crop) => (
@@ -106,7 +106,7 @@ export default function FieldDetailScreen() {
               </View>
 
               <Text style={[styles.cropMeta, { color: colors.textSecondary }]}>
-                Ekilgan sana: {crop.plantedDate} • Kutilgan yig&apos;im: {crop.expectedHarvestDate || "Ko'rsatilmagan"}
+                Ekilgan sana: {crop.plantedDate} • Kutilgan yig'im: {crop.expectedHarvestDate || "Ko'rsatilmagan"}
               </Text>
 
               {crop.expectedYield ? (
@@ -121,7 +121,7 @@ export default function FieldDetailScreen() {
                   style={[styles.miniHarvestBtn, { backgroundColor: colors.accentAmber }]}
                   onPress={() => router.push({ pathname: '/fields/add-harvest' as any, params: { cropSeasonId: crop.id } })}>
                   <ShoppingBag size={14} color="white" />
-                  <Text style={styles.miniHarvestText}>Hosil Yig&apos;imini Kiritish</Text>
+                  <Text style={styles.miniHarvestText}>Hosil Yig'imini Kiritish</Text>
                 </TouchableOpacity>
               </RoleGuard>
             </View>

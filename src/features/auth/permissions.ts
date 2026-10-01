@@ -33,9 +33,13 @@ export const PERMISSION_MATRIX: Record<UserRole, PermissionAction[]> = {
   ],
   WORKER: [
     'ANIMAL_READ',
+    'ANIMAL_CREATE',
+    'ANIMAL_EDIT',
     'FEED_READ',
     'FEED_TRANSACTION_ADD',
     'LAND_READ',
+    'HEALTH_READ',
+    'HEALTH_MANAGE',
   ],
   VET: [
     'ANIMAL_READ',

@@ -87,7 +87,7 @@ export default function FeedDetailScreen() {
 
         {transactions.length === 0 ? (
           <View style={[styles.emptyBox, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
-            <Text style={{ color: colors.textSecondary }}>Hozircha operatsiyalar tarixi yo&apos;q.</Text>
+            <Text style={{ color: colors.textSecondary }}>Hozircha operatsiyalar tarixi yo'q.</Text>
           </View>
         ) : (
           transactions.map((tx) => {

@@ -20,6 +20,23 @@ describe('My Farm Domain & Schema Unit Tests', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should validate animal form input with purchase price and date', () => {
+      const validData = {
+        tagNumber: 'SHEEP-102',
+        name: 'Oqboy',
+        type: 'SHEEP',
+        gender: 'MALE',
+        breed: 'Hisor',
+        status: 'HEALTHY',
+        weight: 70,
+        purchasePrice: 2500000,
+        purchaseDate: '2024-03-10',
+      };
+
+      const result = animalFormSchema.safeParse(validData);
+      expect(result.success).toBe(true);
+    });
+
     it('should fail validation if tagNumber is missing or invalid', () => {
       const invalidData = {
         tagNumber: '',

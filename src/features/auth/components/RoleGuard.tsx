@@ -36,9 +36,9 @@ export function RoleGuard({
     return (
       <View style={[styles.forbiddenCard, { backgroundColor: colors.backgroundElement, borderColor: colors.cardBorder }]}>
         <ShieldAlert size={36} color={colors.danger} />
-        <Text style={[styles.title, { color: colors.text }]}>Ruxsat yo&apos;q</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Ruxsat yo'q</Text>
         <Text style={[styles.description, { color: colors.textSecondary }]}>
-          Ushbu funksiya yoki ma&apos;lumotlarni ko&apos;rish uchun sizning rolingizda ruxsat mavjud emas.
+          Ushbu funksiya yoki ma'lumotlarni ko'rish uchun sizning rolingizda ruxsat mavjud emas.
         </Text>
       </View>
     );

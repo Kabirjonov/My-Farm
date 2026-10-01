@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   useColorScheme,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Lock, Mail, Tractor, ArrowRight, UserCheck } from 'lucide-react-native';
@@ -25,24 +24,28 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email.trim()) {
       setErrorMsg('Email kiritilishi shart!');
       return;
     }
+    if (!password.trim()) {
+      setErrorMsg('Parol kiritilishi shart!');
+      return;
+    }
     setErrorMsg('');
-    login(email, password);
-    Alert.alert(t('success'), 'Tizimga muvaffaqiyatli kirdingiz!');
-    router.replace('/');
-  };
-
-  const handleDemoFill = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('123456');
-    setErrorMsg('');
-    login(demoEmail, '123456');
-    router.replace('/');
+    setLoading(true);
+    try {
+      await login(email.trim(), password);
+      router.replace('/');
+    } catch (err: any) {
+      const msg = err?.message || 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
+      setErrorMsg(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -92,9 +95,10 @@ export default function LoginScreen() {
         />
 
         <AppButton
-          title={t('loginBtn')}
+          title={loading ? 'Kirish...' : t('loginBtn')}
           onPress={handleLogin}
           style={{ marginTop: 8 }}
+          disabled={loading}
         />
 
         {/* Register Link */}
@@ -110,40 +114,6 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Demo Quick Fill Buttons */}
-      <View style={styles.demoSection}>
-        <Text style={[styles.demoTitle, { color: C.textSecondary }]}>
-          ⚡ {t('demoAccounts')}:
-        </Text>
-        <View style={styles.demoButtonsRow}>
-          <TouchableOpacity
-            style={[styles.demoBtn, { backgroundColor: C.successLight }]}
-            onPress={() => handleDemoFill('owner@myfarm.uz')}>
-            <UserCheck size={14} color={C.primary} />
-            <Text style={[styles.demoBtnText, { color: C.primary }]}>
-              {t('ownerDemo')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.demoBtn, { backgroundColor: '#E3F2FD' }]}
-            onPress={() => handleDemoFill('manager@myfarm.uz')}>
-            <UserCheck size={14} color={C.accentBlue} />
-            <Text style={[styles.demoBtnText, { color: C.accentBlue }]}>
-              {t('managerDemo')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.demoBtn, { backgroundColor: C.warningLight }]}
-            onPress={() => handleDemoFill('worker@myfarm.uz')}>
-            <UserCheck size={14} color={C.accentAmber} />
-            <Text style={[styles.demoBtnText, { color: C.accentAmber }]}>
-              {t('workerDemo')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
       <View style={{ height: 40 }} />
     </ScrollView>

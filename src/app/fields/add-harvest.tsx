@@ -36,7 +36,7 @@ export default function AddHarvestScreen() {
 
   const qualityOptions: { label: string; value: HarvestQuality }[] = [
     { label: 'Yuqori Sifat (High)', value: 'HIGH' },
-    { label: 'O&apos;rta Sifat (Medium)', value: 'MEDIUM' },
+    { label: "O'rta Sifat (Medium)", value: 'MEDIUM' },
     { label: 'Past Sifat (Low)', value: 'LOW' },
     { label: 'Aralash (Mixed)', value: 'MIXED' },
   ];
@@ -88,7 +88,7 @@ export default function AddHarvestScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Hosil Yig&apos;imini Kiritish</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Hosil Yig'imini Kiritish</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -128,7 +128,7 @@ export default function AddHarvestScreen() {
           onValueChange={(val) => setQuality(val as HarvestQuality)}
         />
 
-        <Text style={[styles.sectionHeading, { color: colors.text }]}>Sotuv va Daromad Ma&apos;lumotlari (ixtiyoriy)</Text>
+        <Text style={[styles.sectionHeading, { color: colors.text }]}>Sotuv va Daromad Ma'lumotlari (ixtiyoriy)</Text>
 
         <AppTextInput
           label="Sotilgan hosil miqdori"
@@ -139,7 +139,7 @@ export default function AddHarvestScreen() {
         />
 
         <AppTextInput
-          label="Sotuvdan tushgan daromad (so&apos;mda, Moliya bo&apos;limiga o&apos;tadi)"
+          label="Sotuvdan tushgan daromad (so'mda, Moliya bo'limiga o'tadi)"
           placeholder="Masalan: 35000000"
           keyboardType="numeric"
           value={soldAmount}

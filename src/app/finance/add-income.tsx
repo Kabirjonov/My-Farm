@@ -32,7 +32,7 @@ export default function AddIncomeScreen() {
   const categoryOptions: { label: string; value: IncomeCategory }[] = [
     { label: 'Sut sotuvi (Milk)', value: 'MILK' },
     { label: 'Chorva sotuvi (Animal Sale)', value: 'ANIMAL_SALE' },
-    { label: 'Go&apos;sht sotuvi (Meat)', value: 'MEAT' },
+    { label: "Go'sht sotuvi (Meat)", value: 'MEAT' },
     { label: 'Yung sotuvi (Wool)', value: 'WOOL' },
     { label: 'Tuxum sotuvi (Egg)', value: 'EGG' },
     { label: 'Hosil sotuvi (Harvest)', value: 'HARVEST' },

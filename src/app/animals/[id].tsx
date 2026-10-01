@@ -7,14 +7,16 @@ import {
   useColorScheme,
   ScrollView,
   Alert,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Edit3, HeartPulse, Syringe, DollarSign, Info, Plus, Baby, MoreVertical, Calendar, Scale, Award, Activity } from 'lucide-react-native';
+import { ArrowLeft, Edit3, HeartPulse, Syringe, DollarSign, Info, Plus, Baby, Bell, MoreVertical, Calendar, Scale, Award, Activity, X } from 'lucide-react-native';
 import { Colors, Radius, Shadow } from '@/constants/theme';
 import { livestockService } from '@/features/livestock';
 import { useHealth } from '@/features/health';
+import { reminderRepository } from '@/lib/db/repositories/reminderRepository';
 import { RoleGuard } from '@/features/auth';
-import { ErrorState, AppButton } from '@/components/ui';
+import { ErrorState, AppButton, AppTextInput } from '@/components/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@/i18n';
 
@@ -35,11 +37,22 @@ export default function AnimalDetailScreen() {
   const { t, formatEnum } = useTranslation();
   const queryClient = useQueryClient();
 
-
-  const [activeTab, setActiveTab] = useState<'info' | 'health' | 'vaccination' | 'breeding' | 'finance'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'health' | 'vaccination' | 'breeding' | 'reminders' | 'finance'>('info');
+  const [noteModalVisible, setNoteModalVisible] = useState(false);
+  const [noteText, setNoteText] = useState('');
 
   const animal = id ? livestockService.getAnimalById(id) : null;
   const { healthRecords, vaccinations, breedingRecords } = useHealth(id);
+  const reminders = animal ? reminderRepository.list().filter((r) => r.relatedEntityId === animal.id || r.title.includes(animal.tagNumber)) : [];
+
+  const handleSaveNote = () => {
+    if (animal) {
+      livestockService.updateAnimal(animal.id, { notes: noteText });
+      queryClient.invalidateQueries({ queryKey: ['livestock'] });
+      setNoteModalVisible(false);
+      Alert.alert('Muvaffaqiyatli', 'Izoh saqlandi.');
+    }
+  };
 
   if (!animal) {
     return (
@@ -205,12 +218,18 @@ export default function AnimalDetailScreen() {
         </View>
 
         {/* Tab Navigation */}
-        <View style={[styles.tabBar, { backgroundColor: C.backgroundElement, borderBottomColor: C.divider }]}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={[styles.tabBarScroll, { backgroundColor: C.backgroundElement, borderBottomColor: C.divider }]}
+          contentContainerStyle={styles.tabBarContent}
+        >
           {[
             { key: 'info', label: 'Umumiy', icon: Info },
             { key: 'health', label: `Sog'liq (${healthRecords.length})`, icon: HeartPulse },
             { key: 'vaccination', label: `Emlash (${vaccinations.length})`, icon: Syringe },
             ...(animal.gender === 'FEMALE' ? [{ key: 'breeding', label: `Nasl (${breedingRecords.length})`, icon: Baby }] : []),
+            { key: 'reminders', label: `Eslatmasi (${reminders.length})`, icon: Bell },
             { key: 'finance', label: 'Moliya', icon: DollarSign },
           ].map((tItem) => {
             const Icon = tItem.icon;
@@ -230,7 +249,7 @@ export default function AnimalDetailScreen() {
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
 
         {/* Tab Content */}
         <View style={[styles.tabCard, { backgroundColor: C.backgroundElement, ...Shadow.card }]}>
@@ -262,11 +281,24 @@ export default function AnimalDetailScreen() {
               </View>
               <View style={[styles.rowDivider, { backgroundColor: C.divider }]} />
 
-              <View style={styles.infoRow}>
-                <Text style={[styles.infoLabel, { color: C.textSecondary }]}>Izoh</Text>
-                <Text style={[styles.infoValue, { color: C.text, flex: 1, textAlign: 'right' }]}>
-                  {animal.notes || "Oziqlanishi yaxshi, izoh mavjud emas."}
-                </Text>
+              <View style={{ gap: 8, marginTop: 4 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={[styles.infoLabel, { color: C.textSecondary }]}>Izoh / Qaydlar</Text>
+                  <TouchableOpacity
+                    style={[styles.miniAddBtn, { backgroundColor: C.primary }]}
+                    onPress={() => {
+                      setNoteText(animal.notes || '');
+                      setNoteModalVisible(true);
+                    }}>
+                    <Edit3 size={14} color="white" />
+                    <Text style={styles.miniAddBtnText}>+ Izoh yozish</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={{ backgroundColor: C.background, padding: 12, borderRadius: Radius.md, borderWidth: 1, borderColor: C.divider }}>
+                  <Text style={{ fontSize: 13, color: animal.notes ? C.text : C.textSecondary, lineHeight: 18 }}>
+                    {animal.notes || "Hozircha izoh mavjud emas. Yangi izoh yozish uchun tugmani bosing."}
+                  </Text>
+                </View>
               </View>
             </View>
           )}
@@ -275,14 +307,12 @@ export default function AnimalDetailScreen() {
             <View style={styles.section}>
               <View style={styles.sectionTop}>
                 <Text style={[styles.sectionTitle, { color: C.text }]}>Sog'liq Yozuvlari</Text>
-                <RoleGuard permission="HEALTH_MANAGE">
-                  <TouchableOpacity
-                    style={[styles.miniAddBtn, { backgroundColor: C.primary }]}
-                    onPress={() => router.push({ pathname: '/animals/add-health' as any, params: { animalId: animal.id } })}>
-                    <Plus size={14} color="white" />
-                    <Text style={styles.miniAddBtnText}>{t('add')}</Text>
-                  </TouchableOpacity>
-                </RoleGuard>
+                <TouchableOpacity
+                  style={[styles.miniAddBtn, { backgroundColor: C.primary }]}
+                  onPress={() => router.push({ pathname: '/animals/add-health' as any, params: { animalId: animal.id } })}>
+                  <Plus size={14} color="white" />
+                  <Text style={styles.miniAddBtnText}>+ Qo'shish</Text>
+                </TouchableOpacity>
               </View>
               {healthRecords.length === 0 ? (
                 <Text style={[styles.emptyText, { color: C.textSecondary }]}>Hozircha sog'liq yozuvlari yo'q.</Text>
@@ -303,14 +333,12 @@ export default function AnimalDetailScreen() {
             <View style={styles.section}>
               <View style={styles.sectionTop}>
                 <Text style={[styles.sectionTitle, { color: C.text }]}>Emlash Tarixi</Text>
-                <RoleGuard permission="HEALTH_MANAGE">
-                  <TouchableOpacity
-                    style={[styles.miniAddBtn, { backgroundColor: C.primary }]}
-                    onPress={() => router.push({ pathname: '/animals/add-vaccination' as any, params: { animalId: animal.id } })}>
-                    <Plus size={14} color="white" />
-                    <Text style={styles.miniAddBtnText}>{t('add')}</Text>
-                  </TouchableOpacity>
-                </RoleGuard>
+                <TouchableOpacity
+                  style={[styles.miniAddBtn, { backgroundColor: C.primary }]}
+                  onPress={() => router.push({ pathname: '/animals/add-vaccination' as any, params: { animalId: animal.id } })}>
+                  <Plus size={14} color="white" />
+                  <Text style={styles.miniAddBtnText}>+ Qo'shish</Text>
+                </TouchableOpacity>
               </View>
               {vaccinations.length === 0 ? (
                 <Text style={[styles.emptyText, { color: C.textSecondary }]}>Hozircha emlash yozuvlari yo'q.</Text>
@@ -326,20 +354,22 @@ export default function AnimalDetailScreen() {
             </View>
           )}
 
-          {activeTab === 'breeding' && animal.gender === 'FEMALE' && (
+          {activeTab === 'breeding' && (
             <View style={styles.section}>
               <View style={styles.sectionTop}>
                 <Text style={[styles.sectionTitle, { color: C.text }]}>Naslchilik Yozuvlari</Text>
-                <RoleGuard permission="HEALTH_MANAGE">
+                {animal.gender === 'FEMALE' && (
                   <TouchableOpacity
                     style={[styles.miniAddBtn, { backgroundColor: C.primary }]}
                     onPress={() => router.push({ pathname: '/animals/add-breeding' as any, params: { animalId: animal.id } })}>
                     <Plus size={14} color="white" />
-                    <Text style={styles.miniAddBtnText}>{t('add')}</Text>
+                    <Text style={styles.miniAddBtnText}>+ Qo'shish</Text>
                   </TouchableOpacity>
-                </RoleGuard>
+                )}
               </View>
-              {breedingRecords.length === 0 ? (
+              {animal.gender !== 'FEMALE' ? (
+                <Text style={[styles.emptyText, { color: C.textSecondary }]}>Naslchilik yozuvlari faqat urg'ochi (FEMALE) hayvonlar uchun mo'ljallangan.</Text>
+              ) : breedingRecords.length === 0 ? (
                 <Text style={[styles.emptyText, { color: C.textSecondary }]}>Hozircha naslchilik yozuvlari yo'q.</Text>
               ) : (
                 breedingRecords.map((item) => (
@@ -353,12 +383,50 @@ export default function AnimalDetailScreen() {
             </View>
           )}
 
+          {activeTab === 'reminders' && (
+            <View style={styles.section}>
+              <View style={styles.sectionTop}>
+                <Text style={[styles.sectionTitle, { color: C.text }]}>Eslatmalar</Text>
+                <TouchableOpacity
+                  style={[styles.miniAddBtn, { backgroundColor: C.primary }]}
+                  onPress={() => router.push({ pathname: '/animals/add-reminder' as any, params: { animalId: animal.id, tagNumber: animal.tagNumber } })}>
+                  <Plus size={14} color="white" />
+                  <Text style={styles.miniAddBtnText}>+ Qo'shish</Text>
+                </TouchableOpacity>
+              </View>
+              {reminders.length === 0 ? (
+                <Text style={[styles.emptyText, { color: C.textSecondary }]}>Hozircha eslatmalar yo'q.</Text>
+              ) : (
+                reminders.map((item) => (
+                  <View key={item.id} style={[styles.timelineCard, { backgroundColor: C.background }]}>
+                    <Text style={[styles.timelineTitle, { color: C.text }]}>{item.title}</Text>
+                    <Text style={[styles.timelineBody, { color: C.warning }]}>Bajarilish sanasi: {item.dueDate}</Text>
+                    {item.description ? <Text style={[styles.timelineBody, { color: C.textSecondary }]}>{item.description}</Text> : null}
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+
           {activeTab === 'finance' && (
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: C.text }]}>Moliya Ma'lumoti</Text>
-              <Text style={[styles.emptyText, { color: C.textSecondary }]}>
-                Sotib olingan narxi: {animal.purchasePrice ? `${animal.purchasePrice.toLocaleString()} UZS` : "Ko'rsatilmagan"}
-              </Text>
+              <View style={{ gap: 12, marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 14, color: C.textSecondary, fontWeight: '500' }}>Sotib olingan narxi:</Text>
+                  <Text style={{ fontSize: 15, color: C.primary, fontWeight: '700' }}>
+                    {typeof animal.purchasePrice === 'number' && animal.purchasePrice > 0
+                      ? `${animal.purchasePrice.toLocaleString()} UZS`
+                      : "Ko'rsatilmagan"}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 14, color: C.textSecondary, fontWeight: '500' }}>Sotib olingan sanasi:</Text>
+                  <Text style={{ fontSize: 15, color: C.text, fontWeight: '600' }}>
+                    {animal.purchaseDate ? animal.purchaseDate : "Ko'rsatilmagan"}
+                  </Text>
+                </View>
+              </View>
             </View>
           )}
         </View>
@@ -375,6 +443,50 @@ export default function AnimalDetailScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Notes Modal */}
+      <Modal
+        animationType="slide"
+        transparent
+        visible={noteModalVisible}
+        onRequestClose={() => setNoteModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: C.backgroundElement, borderColor: C.divider }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: C.text }]}>
+                {animal.tagNumber} uchun Izoh Yozish
+              </Text>
+              <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setNoteModalVisible(false)}>
+                <X size={20} color={C.text} />
+              </TouchableOpacity>
+            </View>
+
+            <AppTextInput
+              label="Izoh / Qayd"
+              placeholder="Oziqlanishi, vaksinatsiyasi, salomatlik holati bo'yicha belgilaringiz..."
+              multiline
+              numberOfLines={4}
+              style={{ height: 100 }}
+              value={noteText}
+              onChangeText={setNoteText}
+            />
+
+            <View style={styles.modalBtnRow}>
+              <AppButton
+                title="Bekor qilish"
+                variant="outline"
+                onPress={() => setNoteModalVisible(false)}
+                style={{ flex: 1 }}
+              />
+              <AppButton
+                title="Saqlash"
+                onPress={handleSaveNote}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -389,6 +501,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 10,
     borderBottomWidth: 1,
   },
   iconBtn: {
@@ -398,7 +511,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { fontSize: 18, fontWeight: '800' },
+  title: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
 
   content: { padding: 16, gap: 14 },
 
@@ -418,6 +536,27 @@ const styles = StyleSheet.create({
   animalEmoji: { fontSize: 32 },
   profileDetails: { flex: 1, gap: 2 },
   nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  tagEditRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  editBadgeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
+  },
+  editBadgeBtnText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
   animalName: { fontSize: 18, fontWeight: '800' },
   tagNumber: { fontSize: 14, fontWeight: '700' },
   breedText: { fontSize: 12 },
@@ -448,10 +587,14 @@ const styles = StyleSheet.create({
   statBoxLabel: { fontSize: 10, fontWeight: '700' },
   statBoxValue: { fontSize: 13, fontWeight: '700', marginTop: 1 },
 
-  tabBar: {
-    flexDirection: 'row',
-    overflow: 'scroll',
+  tabBarScroll: {
     borderBottomWidth: 1,
+    maxHeight: 48,
+  },
+  tabBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
   tabItem: {
     flexDirection: 'row',
@@ -501,4 +644,34 @@ const styles = StyleSheet.create({
   timelineTitle: { fontSize: 14, fontWeight: '700' },
   timelineBody: { fontSize: 12 },
   timelineCost: { fontSize: 12, fontWeight: '700' },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    borderRadius: Radius.lg,
+    padding: 20,
+    borderWidth: 1,
+    gap: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
 });

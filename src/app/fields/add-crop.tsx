@@ -158,7 +158,7 @@ export default function AddCropSeasonScreen() {
         />
 
         {/* Expenses Section */}
-        <Text style={[styles.sectionHeading, { color: colors.text }]}>Agrotexnik Xarajatlar (so&apos;mda)</Text>
+        <Text style={[styles.sectionHeading, { color: colors.text }]}>Agrotexnik Xarajatlar (so'mda)</Text>
 
         <AppTextInput
           label="Urug' xarajati"

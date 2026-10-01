@@ -302,7 +302,14 @@ function createWebMockDatabase(): IDatabaseInstance {
           found.status = 'ARCHIVED';
           saveStore();
         }
-      } else if (lowerSql.includes('update animals')) {
+      } else if (lowerSql.includes('update animals') && lowerSql.includes("status = 'sold'")) {
+        const id = params[1];
+        const found = memoryStore.animals?.find((a) => a.id === id);
+        if (found) {
+          found.status = 'SOLD';
+          saveStore();
+        }
+      } else if (lowerSql.includes('update animals') && params.length >= 15) {
         const id = params[params.length - 1];
         const found = memoryStore.animals?.find((a) => a.id === id);
         if (found) {
@@ -317,7 +324,7 @@ function createWebMockDatabase(): IDatabaseInstance {
           found.status = params[8];
           found.healthStatus = params[9];
           found.groupId = params[10];
-          found.purchasePrice = params[11];
+          found.purchasePrice = typeof params[11] === 'number' ? params[11] : Number(params[11]) || 0;
           found.purchaseDate = params[12];
           found.notes = params[13];
           found.updatedAt = params[14];

@@ -33,9 +33,9 @@ export default function AddFeedTransactionScreen() {
   const [notes, setNotes] = useState('');
 
   const typeOptions: { label: string; value: FeedTransactionType }[] = [
-    { label: 'Kirim (Sotib olindi / Yig&apos;ildi)', value: 'IN' },
+    { label: "Kirim (Sotib olindi / Yig'ildi)", value: 'IN' },
     { label: 'Chiqim (Hayvonlarga berildi)', value: 'OUT' },
-    { label: 'Yaroqsiz / Yo&apos;qotish (Waste)', value: 'WASTE' },
+    { label: "Yaroqsiz / Yo'qotish (Waste)", value: 'WASTE' },
     { label: 'Tuzatish (Adjustment)', value: 'ADJUSTMENT' },
   ];
 
